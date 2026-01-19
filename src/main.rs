@@ -21,12 +21,15 @@ fn window_conf() -> Conf {
     }
 }
 
-const SMOOTH_TIME: f32 = 1.5;
+const SMOOTH_TIME: f32 = 1.0;
 
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    let mut center = ComplexNumber::new(-0.9, 0.3);
+    // let mut center = ComplexNumber::new(-0.9, 0.3); // Meine
+    let mut center = ComplexNumber::new(-1.4, 0.0); // Feigenbaum Punkt
+
+
     let radius_scaling: f64 = 0.5;
     let mut radius: f64 = 0.1;
     let mut velocity = (0.0, 0.0);

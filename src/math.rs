@@ -3,7 +3,7 @@ use macroquad::prelude::{Color, BLACK};
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
 
 /// The maximum amount of iterations we want to do for a complex number in Mandelbbrot to check for divergence.
-const MAX_ITER:u16 = 1000;
+const MAX_ITER:u16 = 100;
 
 /// Complex number used in Mandelbrot in double precision.
 #[derive(Default,Debug,Clone)]
@@ -94,7 +94,7 @@ fn hsv_to_rgb_color(h: f32, s: f32, v: f32) -> Color {
 }
 
 /// The amount of complete cycles we do on the hue for the complete stretch.
-const HUE_CYCLES : f32 = 5.0;
+const HUE_CYCLES : f32 = 1.0;
 /// The light intensity we use on the color.
 const COLOR_VALUE : f32 = 0.8;
 /// The color saturation we use.

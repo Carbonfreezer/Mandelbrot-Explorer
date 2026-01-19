@@ -6,3 +6,9 @@ edition = "2024"
 [dependencies]
 macroquad = { version = "0.4.14" }
 rayon = "1.11.0"
+
+
+# Profile for profiling
+[profile.profiling]
+inherits = "release"
+debug = true

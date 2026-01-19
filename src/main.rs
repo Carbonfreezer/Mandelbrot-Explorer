@@ -24,8 +24,8 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    let center = ComplexNumber::new(-1.0, 0.0);
-    let radius = 2.0;
+    let center = ComplexNumber::new(-1.0, 0.3);
+    let radius = 0.2;
 
     let mut image = Image::gen_image_color(WINDOW_WIDTH as u16, WINDOW_HEIGHT as u16, BLANK);
     let texture = Texture2D::from_image(&image);

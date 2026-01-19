@@ -115,7 +115,7 @@ const WINDOW_STEP : i32 = 3;
 const SAMPLE_SIZE : f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32;
 
 // VARIANCE CAN BE 2500 max. Distance squared can be 450.000
-const INVERSE_DISTANCE_WEIGHT : f32 = 0.001; // 0.0001;
+const INVERSE_DISTANCE_WEIGHT : f32 = 0.0001;
 
 
 pub fn get_focus_point(in_field: &[u16], extension : f64) -> ComplexNumber {
@@ -137,7 +137,7 @@ pub fn get_focus_point(in_field: &[u16], extension : f64) -> ComplexNumber {
             }
             sum /= SAMPLE_SIZE;
             let variance =  sq_sum / SAMPLE_SIZE + sum * sum;
-
+         
             let x_dist = (x_pos - WINDOW_WIDTH / 2) as f32;
             let y_dist = (y_pos - WINDOW_HEIGHT / 2) as f32;
 

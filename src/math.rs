@@ -130,14 +130,14 @@ pub fn get_focus_point(in_field: &[u16], extension : f64) -> ComplexNumber {
             let mut sq_sum : f32 = 0.0;
             for x in (x_pos - WINDOW_STEP) ..  (x_pos + WINDOW_STEP + 1) {
                 for y in (y_pos - WINDOW_STEP) ..  (y_pos + WINDOW_STEP + 1) {
-                    let sample = in_field[x as usize + (y * WINDOW_WIDTH) as usize];
-                    sum += sample as f32;
-                    sq_sum += (sample as f32) * (sample as f32);
+                    let sample = in_field[x as usize + (y * WINDOW_WIDTH) as usize] as f32;
+                    sum += sample;
+                    sq_sum += sample * sample;
                 }
             }
             sum /= SAMPLE_SIZE;
             let variance =  sq_sum / SAMPLE_SIZE + sum * sum;
-         
+
             let x_dist = (x_pos - WINDOW_WIDTH / 2) as f32;
             let y_dist = (y_pos - WINDOW_HEIGHT / 2) as f32;
 

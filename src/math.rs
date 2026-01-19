@@ -116,38 +116,47 @@ const SAMPLE_SIZE : f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32
 
 const MAX_DIST_SQ : f32 =  ((WINDOW_WIDTH / 2).pow(2) + (WINDOW_HEIGHT / 2).pow(2)) as f32;
 
-pub fn get_focus_point(in_field: &[u16], extension : f64) -> ComplexNumber {
-    let best_index = (0..WINDOW_WIDTH * WINDOW_HEIGHT).into_par_iter().map(|x| {
-        let x_pos = x % WINDOW_WIDTH;
-        let y_pos = x / WINDOW_WIDTH;
-        if (x_pos < WINDOW_STEP) || (y_pos < WINDOW_STEP) || (x_pos >= WINDOW_WIDTH - WINDOW_STEP) || (y_pos >= WINDOW_HEIGHT - WINDOW_STEP) {
-            0.0
-        }
-        else {
-            let mut sum : f32 = 0.0;
-            let mut sq_sum : f32 = 0.0;
-            for x in (x_pos - WINDOW_STEP) ..  (x_pos + WINDOW_STEP + 1) {
-                for y in (y_pos - WINDOW_STEP) ..  (y_pos + WINDOW_STEP + 1) {
-                    let sample = in_field[x as usize + (y * WINDOW_WIDTH) as usize] as f32;
-                    sum += sample;
-                    sq_sum += sample * sample;
-                }
+pub fn get_focus_point(in_field: &[u16], extension: f64) -> ComplexNumber {
+    let best_index = (0..WINDOW_WIDTH * WINDOW_HEIGHT)
+        .into_par_iter()
+        .map(|idx| {
+            let x = idx % WINDOW_WIDTH;
+            let y = idx / WINDOW_WIDTH;
+
+            // Randbereich ausschließen
+            if x < WINDOW_STEP || y < WINDOW_STEP
+                || x >= WINDOW_WIDTH - WINDOW_STEP
+                || y >= WINDOW_HEIGHT - WINDOW_STEP
+            {
+                return 0.0;
             }
-            sum /= SAMPLE_SIZE;
-            let variance =  sq_sum / SAMPLE_SIZE - sum * sum;
 
-            let x_dist = (x_pos - WINDOW_WIDTH / 2) as f32;
-            let y_dist = (y_pos - WINDOW_HEIGHT / 2) as f32;
+            // Varianz im Fenster berechnen
+            let (sum, sq_sum) = (-WINDOW_STEP..=WINDOW_STEP)
+                .flat_map(|dx| (-WINDOW_STEP..=WINDOW_STEP).map(move |dy| (dx, dy)))
+                .map(|(dx, dy)| {
+                    in_field[(x + dx) as usize + ((y + dy) * WINDOW_WIDTH) as usize] as f32
+                })
+                .fold((0.0, 0.0), |(s, sq), v| (s + v, sq + v * v));
 
-            let dist_sq = x_dist * x_dist + y_dist * y_dist;
-            let center_bias = 1.0 - 0.5 * (dist_sq / MAX_DIST_SQ);
-            
+            let mean = sum / SAMPLE_SIZE;
+            let variance = sq_sum / SAMPLE_SIZE - mean * mean;
+
+            // Zentrum bevorzugen
+            let dx = (x - WINDOW_WIDTH / 2) as f32;
+            let dy = (y - WINDOW_HEIGHT / 2) as f32;
+            let center_bias = 1.0 - 0.5 * (dx * dx + dy * dy) / MAX_DIST_SQ;
+
             variance * center_bias
-        }
-    }).enumerate().max_by(|(_, a), (_, b)| a.total_cmp(b)).map(|(idx, _)| idx).unwrap() as i32;
+        })
+        .enumerate()
+        .max_by(|(_, a), (_, b)| a.total_cmp(b))
+        .unwrap()
+        .0 as i32;
 
-    let window_height = WINDOW_HEIGHT as f64;
-    let step_increment = extension / (window_height * 0.5);
-
-    ComplexNumber::new((best_index % WINDOW_WIDTH - WINDOW_WIDTH / 2) as f64 * step_increment, (best_index / WINDOW_WIDTH - WINDOW_HEIGHT / 2) as f64 * step_increment)
+    let step = extension / (WINDOW_HEIGHT as f64 * 0.5);
+    ComplexNumber::new(
+        (best_index % WINDOW_WIDTH - WINDOW_WIDTH / 2) as f64 * step,
+        (best_index / WINDOW_WIDTH - WINDOW_HEIGHT / 2) as f64 * step,
+    )
 }

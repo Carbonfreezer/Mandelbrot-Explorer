@@ -3,14 +3,13 @@
 mod math;
 mod viridis;
 
-use macroquad::miniquad::FilterMode;
-use macroquad::prelude::{clear_background, draw_text, draw_texture, get_frame_time, next_frame, Conf, Image, Texture2D, BLACK, BLANK, GREEN, WHITE};
+use macroquad::prelude::*;
 use crate::math::{convert_iteration_array, get_iteration_field, ComplexNumber};
 
 /// Width of the window in stand-alone mode.
 const WINDOW_WIDTH: i32 = 1280;
 /// Height of the window in stand-alone mode.
-const WINDOW_HEIGHT: i32 = 1024;
+const WINDOW_HEIGHT: i32 = 720;
 
 /// Sets the windows name and the required size.
 fn window_conf() -> Conf {
@@ -32,7 +31,6 @@ async fn main() {
 
     let mut image = Image::gen_image_color(WINDOW_WIDTH as u16, WINDOW_HEIGHT as u16, BLANK);
     let texture = Texture2D::from_image(&image);
-    texture.set_filter(FilterMode::Linear);
 
 
 
@@ -47,7 +45,13 @@ async fn main() {
 
         image.update(&color_array);
         texture.update(&image);
-        draw_texture(&texture, 0.0, 0.0, WHITE);
+
+        draw_texture_ex(&texture, 0.0, 0.0, WHITE, DrawTextureParams {
+            dest_size: Some(Vec2::new(screen_width(), screen_height())),
+            ..Default::default()
+        });
+
+        // draw_texture(&texture, 0.0, 0.0, WHITE);
 
         let time_str = format!("Zeit: {:.2}s", delta_time);
         draw_text(&time_str, 20.0, 50.0, 30.0, GREEN);

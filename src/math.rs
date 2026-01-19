@@ -1,7 +1,6 @@
 use rayon::prelude::*;
 use macroquad::prelude::{Color, BLACK};
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
-use crate::viridis::get_color;
 
 /// The maximum amount of iterations we want to do for a complex number in Mandelbbrot to check for divergence.
 pub const MAX_ITER:u16 = 100;

@@ -1,7 +1,6 @@
 #![windows_subsystem = "windows"]
 
 mod math;
-mod viridis;
 
 use macroquad::prelude::*;
 use crate::math::{generate_colors, get_focus_point, get_iteration_field, ComplexNumber};
@@ -41,10 +40,10 @@ async fn main() {
         clear_background(BLACK);
 
         let num_array = get_iteration_field(center.clone(), radius);
-        
+
         let focus  = get_focus_point(&num_array, radius);
         center.add_into(&focus);
-        
+
         let color_array = generate_colors(&num_array);
 
         image.update(&color_array);

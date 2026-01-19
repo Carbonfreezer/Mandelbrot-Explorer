@@ -111,12 +111,10 @@ pub fn generate_colors(in_field: &[u16]) -> Vec< Color> {
 }
 
 
-const WINDOW_STEP : i32 = 3;
+const WINDOW_STEP : i32 = 6;
 const SAMPLE_SIZE : f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32;
 
-// VARIANCE CAN BE 2500 max. Distance squared can be 450.000
-const INVERSE_DISTANCE_WEIGHT : f32 = 0.0001;
-
+const MAX_DIST_SQ : f32 =  ((WINDOW_WIDTH / 2).pow(2) + (WINDOW_HEIGHT / 2).pow(2)) as f32;
 
 pub fn get_focus_point(in_field: &[u16], extension : f64) -> ComplexNumber {
     let best_index = (0..WINDOW_WIDTH * WINDOW_HEIGHT).into_par_iter().map(|x| {
@@ -136,14 +134,15 @@ pub fn get_focus_point(in_field: &[u16], extension : f64) -> ComplexNumber {
                 }
             }
             sum /= SAMPLE_SIZE;
-            let variance =  sq_sum / SAMPLE_SIZE + sum * sum;
+            let variance =  sq_sum / SAMPLE_SIZE - sum * sum;
 
             let x_dist = (x_pos - WINDOW_WIDTH / 2) as f32;
             let y_dist = (y_pos - WINDOW_HEIGHT / 2) as f32;
 
-            let prio = variance + INVERSE_DISTANCE_WEIGHT / (1.0 +  x_dist  * x_dist + y_dist * y_dist);
-
-            prio
+            let dist_sq = x_dist * x_dist + y_dist * y_dist;
+            let center_bias = 1.0 - 0.5 * (dist_sq / MAX_DIST_SQ);
+            
+            variance * center_bias
         }
     }).enumerate().max_by(|(_, a), (_, b)| a.total_cmp(b)).map(|(idx, _)| idx).unwrap() as i32;
 

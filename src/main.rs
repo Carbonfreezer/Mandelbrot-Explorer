@@ -27,7 +27,7 @@ async fn main() {
 
     let mut center = ComplexNumber::new(-0.9, 0.3);
     let radius_scaling: f64 = 0.5;
-    let mut radius: f64 = 1.0;
+    let mut radius: f64 = 0.1;
 
     let mut image = Image::gen_image_color(WINDOW_WIDTH as u16, WINDOW_HEIGHT as u16, BLANK);
     let texture = Texture2D::from_image(&image);

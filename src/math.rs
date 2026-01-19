@@ -1,5 +1,5 @@
 use rayon::prelude::*;
-use macroquad::prelude::{Color};
+use macroquad::prelude::{Color, BLACK};
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
 use crate::viridis::get_color;
 
@@ -63,11 +63,51 @@ pub fn get_iteration_field(center: ComplexNumber, extension : f64) -> Vec<u16> {
     }).collect::<Vec<u16>>()
 }
 
+/// Converts hsv to rgb color.
+fn hsv_to_rgb_color(h: f32, s: f32, v: f32) -> Color {
+    let mut r = 0.0;
+    let mut g = 0.0;
+    let mut b = 0.0;
 
+    if s == 0.0 {
+        r = v;
+        g = v;
+        b = v;
+    } else {
+        let h_i = (h * 6.0).floor();
+        let f = h * 6.0 - h_i;
+        let p = v * (1.0 - s);
+        let q = v * (1.0 - f * s);
+        let t = v * (1.0 - (1.0 - f) * s);
+
+        match h_i as i32 {
+            0 => { r = v; g = t; b = p; }
+            1 => { r = q; g = v; b = p; }
+            2 => { r = p; g = v; b = t; }
+            3 => { r = p; g = q; b = v; }
+            4 => { r = t; g = p; b = v; }
+            5 => { r = v; g = p; b = q; }
+            _ => {}
+        }
+    }
+    Color::new(r, g, b, 1.0)
+}
+
+/// The amount of complete cycles we do on the hue for the complete stretch.
+const HUE_CYCLES : f32 = 5.0;
+/// The light intensity we use on the color.
+const COLOR_VALUE : f32 = 0.8;
+/// The color saturation we use.
+const COLOR_SATURATION : f32 = 0.7;
 
 /// Takes a field with iterations and converts it into a color array.
 pub fn generate_colors(in_field: &[u16]) -> Vec< Color> {
-    in_field.par_iter().map( |i| { get_color(*i) }).collect()
+    in_field.par_iter().map( |i| {
+        if *i == MAX_ITER {BLACK} else {
+            let rel_val = (*i as f32 * HUE_CYCLES / MAX_ITER as f32).fract();
+            hsv_to_rgb_color(rel_val, COLOR_SATURATION, COLOR_VALUE)
+        }
+    }).collect()
 }
 
 
@@ -75,7 +115,8 @@ const WINDOW_STEP : i32 = 3;
 const SAMPLE_SIZE : f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32;
 
 // VARIANCE CAN BE 2500 max. Distance squared can be 450.000
-const INVERSE_DISTANCE_WEIGHT : f32 = 0.0001;
+const INVERSE_DISTANCE_WEIGHT : f32 = 0.001; // 0.0001;
+
 
 pub fn get_focus_point(in_field: &[u16], extension : f64) -> ComplexNumber {
     let best_index = (0..WINDOW_WIDTH * WINDOW_HEIGHT).into_par_iter().map(|x| {
@@ -100,7 +141,7 @@ pub fn get_focus_point(in_field: &[u16], extension : f64) -> ComplexNumber {
             let x_dist = (x_pos - WINDOW_WIDTH / 2) as f32;
             let y_dist = (y_pos - WINDOW_HEIGHT / 2) as f32;
 
-            let prio = variance + INVERSE_DISTANCE_WEIGHT / (1.0 + x_dist  * x_dist + y_dist * y_dist);
+            let prio = variance + INVERSE_DISTANCE_WEIGHT / (1.0 +  x_dist  * x_dist + y_dist * y_dist);
 
             prio
         }

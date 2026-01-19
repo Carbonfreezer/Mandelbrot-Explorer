@@ -1,5 +1,5 @@
 use crate::math::MAX_ITER;
-use macroquad::prelude::{BLACK, Color};
+use macroquad::prelude::{ Color};
 
 const CTRL_POINTS: usize = 17;
 /// Reference control points from matplotlib's viridis colormap (every 16th entry)
@@ -27,7 +27,12 @@ const SCALING : f32 = (CTRL_POINTS - 1) as f32 / MAX_ITER as f32;
 
 pub fn get_color(iter: u16) -> Color {
     if iter == MAX_ITER {
-        BLACK
+        Color::new(
+            VIRIDIS[CTRL_POINTS - 1][0],
+            VIRIDIS[CTRL_POINTS - 1][1],
+            VIRIDIS[CTRL_POINTS - 1][2],
+            1.0,
+        )
     } else {
         let base = iter as f32 * SCALING;
         let alpha = base.fract();

@@ -3,6 +3,7 @@
 mod math;
 mod viridis;
 
+use macroquad::miniquad::FilterMode;
 use macroquad::prelude::{clear_background, draw_text, draw_texture, get_frame_time, next_frame, Conf, Image, Texture2D, BLACK, BLANK, GREEN, WHITE};
 use crate::math::{convert_iteration_array, get_iteration_field, ComplexNumber};
 
@@ -25,16 +26,19 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    let center = ComplexNumber::new(-1.0, 0.3);
-    let radius = 0.2;
+    let center = ComplexNumber::new(-0.9, 0.3);
+    let radius_scaling: f64 = 0.5;
+    let mut radius: f64 = 1.0;
 
     let mut image = Image::gen_image_color(WINDOW_WIDTH as u16, WINDOW_HEIGHT as u16, BLANK);
     let texture = Texture2D::from_image(&image);
+    texture.set_filter(FilterMode::Linear);
 
 
 
     loop {
         let delta_time = get_frame_time();
+        radius *= radius_scaling.powf(delta_time as f64);
 
         clear_background(BLACK);
 

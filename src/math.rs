@@ -161,7 +161,7 @@ pub fn get_focus_point(in_field: &[u16]) -> (f32, f32) {
 
 pub fn smooth_damp(
     current: f32,
-    mut target: f32,
+    target: f32,
     current_velocity: &mut f32,
     smooth_time: f32,
     delta_time: f32,
@@ -169,13 +169,9 @@ pub fn smooth_damp(
     // Sicherstellen, dass smooth_time nicht 0 ist, um Division durch Null zu vermeiden
     let smooth_time = smooth_time.max(0.0001);
     let omega = 2.0 / smooth_time;
-
     let exp = (-omega * delta_time).exp();
-
     let change = current - target;
-    let original_to = target;
 
-    target = current - change;
 
     let temp = (*current_velocity + omega * change) * delta_time;
     *current_velocity = (*current_velocity - omega * temp) * exp;
@@ -183,9 +179,9 @@ pub fn smooth_damp(
     let mut output = target + (change + temp) * exp;
 
     // Über-shooting verhindern
-    if (original_to - current > 0.0) == (output > original_to) {
-        output = original_to;
-        *current_velocity = (output - original_to) / delta_time;
+    if (target - current > 0.0) == (output > target) {
+        output = target;
+        *current_velocity = 0.0;
     }
 
     output

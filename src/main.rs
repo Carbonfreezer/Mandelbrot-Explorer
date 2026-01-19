@@ -1,6 +1,7 @@
 #![windows_subsystem = "windows"]
 
 mod math;
+mod viridis;
 
 use macroquad::prelude::{clear_background, draw_text, draw_texture, get_frame_time, next_frame, Conf, Image, Texture2D, BLACK, BLANK, GREEN, WHITE};
 use crate::math::{convert_iteration_array, get_iteration_field, ComplexNumber};

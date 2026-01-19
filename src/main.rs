@@ -4,7 +4,7 @@ mod math;
 mod viridis;
 
 use macroquad::prelude::*;
-use crate::math::{convert_iteration_array, get_iteration_field, ComplexNumber};
+use crate::math::{generate_colors, get_focus_point, get_iteration_field, ComplexNumber};
 
 /// Width of the window in stand-alone mode.
 const WINDOW_WIDTH: i32 = 1280;
@@ -25,7 +25,7 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
 
-    let center = ComplexNumber::new(-0.9, 0.3);
+    let mut center = ComplexNumber::new(-0.9, 0.3);
     let radius_scaling: f64 = 0.5;
     let mut radius: f64 = 1.0;
 
@@ -41,7 +41,11 @@ async fn main() {
         clear_background(BLACK);
 
         let num_array = get_iteration_field(center.clone(), radius);
-        let color_array = convert_iteration_array(&num_array);
+        
+        let focus  = get_focus_point(&num_array, radius);
+        center.add_into(&focus);
+        
+        let color_array = generate_colors(&num_array);
 
         image.update(&color_array);
         texture.update(&image);

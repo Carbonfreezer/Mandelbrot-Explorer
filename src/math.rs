@@ -36,7 +36,7 @@ impl ComplexNumber {
         let mut iter = 0;
         let mut scan = ComplexNumber::default();
         while iter < MAX_ITER && !scan.is_too_large() {
-            scan.next_step(&self);
+            scan.next_step(self);
             iter += 1;
         }
         iter
@@ -66,6 +66,48 @@ pub fn get_iteration_field(center: ComplexNumber, extension : f64) -> Vec<u16> {
 
 
 /// Takes a field with iterations and converts it into a color array.
-pub fn convert_iteration_array(in_field: &[u16]) -> Vec< Color> {
+pub fn generate_colors(in_field: &[u16]) -> Vec< Color> {
     in_field.par_iter().map( |i| { get_color(*i) }).collect()
+}
+
+
+const WINDOW_STEP : i32 = 3;
+const SAMPLE_SIZE : f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32;
+
+// VARIANCE CAN BE 2500 max. Distance squared can be 450.000
+const INVERSE_DISTANCE_WEIGHT : f32 = 0.0001;
+
+pub fn get_focus_point(in_field: &[u16], extension : f64) -> ComplexNumber {
+    let best_index = (0..WINDOW_WIDTH * WINDOW_HEIGHT).into_par_iter().map(|x| {
+        let x_pos = x % WINDOW_WIDTH;
+        let y_pos = x / WINDOW_WIDTH;
+        if (x_pos < WINDOW_STEP) || (y_pos < WINDOW_STEP) || (x_pos >= WINDOW_WIDTH - WINDOW_STEP) || (y_pos >= WINDOW_HEIGHT - WINDOW_STEP) {
+            0.0
+        }
+        else {
+            let mut sum : f32 = 0.0;
+            let mut sq_sum : f32 = 0.0;
+            for x in (x_pos - WINDOW_STEP) ..  (x_pos + WINDOW_STEP + 1) {
+                for y in (y_pos - WINDOW_STEP) ..  (y_pos + WINDOW_STEP + 1) {
+                    let sample = in_field[x as usize + (y * WINDOW_WIDTH) as usize];
+                    sum += sample as f32;
+                    sq_sum += (sample as f32) * (sample as f32);
+                }
+            }
+            sum /= SAMPLE_SIZE;
+            let variance =  sq_sum / SAMPLE_SIZE + sum * sum;
+
+            let x_dist = (x_pos - WINDOW_WIDTH / 2) as f32;
+            let y_dist = (y_pos - WINDOW_HEIGHT / 2) as f32;
+
+            let prio = variance + INVERSE_DISTANCE_WEIGHT / (1.0 + x_dist  * x_dist + y_dist * y_dist);
+
+            prio
+        }
+    }).enumerate().max_by(|(_, a), (_, b)| a.total_cmp(b)).map(|(idx, _)| idx).unwrap() as i32;
+
+    let window_height = WINDOW_HEIGHT as f64;
+    let step_increment = extension / (window_height * 0.5);
+
+    ComplexNumber::new((best_index % WINDOW_WIDTH - WINDOW_WIDTH / 2) as f64 * step_increment, (best_index / WINDOW_WIDTH - WINDOW_HEIGHT / 2) as f64 * step_increment)
 }

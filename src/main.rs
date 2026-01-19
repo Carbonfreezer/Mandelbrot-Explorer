@@ -51,8 +51,7 @@ async fn main() {
             ..Default::default()
         });
 
-        // draw_texture(&texture, 0.0, 0.0, WHITE);
-
+       
         let time_str = format!("Zeit: {:.2}s", delta_time);
         draw_text(&time_str, 20.0, 50.0, 30.0, GREEN);
 

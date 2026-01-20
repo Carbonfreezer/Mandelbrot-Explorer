@@ -16,13 +16,13 @@ const WINDOW_WIDTH: i32 = 1280;
 const WINDOW_HEIGHT: i32 = 720;
 
 /// The score we minimally want to get as a starting position.
-const START_SCORE: f32 = 600.0;
+const START_SCORE: f32 = 800.0;
 
 /// The score we minimally want till we terminate.
 const MIN_SCORE: f32 = 150.0;
 
 /// The radius at which we start zooming and to which we zoom out.
-const BASE_RADIUS: f64 = 0.1;
+const BASE_RADIUS: f64 = 0.2;
 
 /// Zoom-out speed multiplier (how fast we zoom out during transition).
 const ZOOM_OUT_SPEED: f64 = 8.0;
@@ -60,7 +60,7 @@ fn window_conf() -> Conf {
 /// Finds a suitable random starting position with good variance score.
 fn find_interesting_start() -> ComplexNumber {
     loop {
-        let test = ComplexNumber::new(gen_range(-2.0, -1.0), gen_range(-1.0, 1.0));
+        let test = ComplexNumber::new(gen_range(-2.0, 1.0), gen_range(-1.0, 1.0));
         let num_array = get_iteration_field(test.clone(), BASE_RADIUS);
         let value = get_focus_point(&num_array).score;
         if value > START_SCORE {

@@ -1,10 +1,14 @@
 #![windows_subsystem = "windows"]
 
 mod math;
+mod color_generation;
+mod focus_system;
 
 use macroquad::prelude::*;
 use macroquad::rand::{gen_range, srand};
-use crate::math::{generate_colors, get_focus_point, get_iteration_field, ComplexNumber};
+use crate::color_generation::generate_colors;
+use crate::focus_system::get_focus_point;
+use crate::math::{get_iteration_field, ComplexNumber};
 
 /// Width of the window in stand-alone mode.
 const WINDOW_WIDTH: i32 = 1280;

@@ -109,7 +109,7 @@ async fn main() {
         let num_array = get_iteration_field(&center, radius);
 
         // State machine logic
-        zoom_state = match zoom_state {
+        match zoom_state {
             ZoomState::ZoomingIn => {
                 // compute the target center we want to approach
                 let focus = get_focus_point(&num_array);
@@ -126,18 +126,14 @@ async fn main() {
                 if radius < 1e-13 || focus.score < MIN_SCORE {
                     next_center = find_interesting_start();
                     velocity = (0.0, 0.0);
-                    ZoomState::ZoomingOut
-                } else {
-                    ZoomState::ZoomingIn
+                    zoom_state = ZoomState::ZoomingOut
                 }
             }
             ZoomState::ZoomingOut  => {
                 // Check if we've reached BASE_RADIUS
                 if radius >= BASE_RADIUS {
                     radius = BASE_RADIUS;
-                    ZoomState::Panning
-                } else {
-                    ZoomState::ZoomingOut
+                    zoom_state = ZoomState::Panning
                 }
             }
             ZoomState::Panning  => {
@@ -147,9 +143,7 @@ async fn main() {
                 let dist_sq = (&center - &next_center).sq_mag();
                 if dist_sq < PAN_COMPLETE_THRESHOLD * PAN_COMPLETE_THRESHOLD {
                     center = next_center.clone();
-                    ZoomState::ZoomingIn
-                } else {
-                    ZoomState::Panning
+                    zoom_state = ZoomState::ZoomingIn
                 }
             }
         };

@@ -140,10 +140,7 @@ async fn main() {
                 // Smooth damp center towards next_center
                 center.smooth_damp_to(&next_center, &mut velocity, PAN_SMOOTH_TIME, delta_time);
 
-                // Check if we've arrived
-                let dist_sq = (center.real - next_center.real).powi(2)
-                    + (center.imag - next_center.imag).powi(2);
-
+                let dist_sq = (center.clone() - next_center.clone()).sq_mag();
                 if dist_sq < PAN_COMPLETE_THRESHOLD * PAN_COMPLETE_THRESHOLD {
                     center = next_center;
                     ZoomState::ZoomingIn

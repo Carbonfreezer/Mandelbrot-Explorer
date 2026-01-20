@@ -1,5 +1,6 @@
 //! Contains the real mandelbrot caclulations.
 
+use std::ops::{AddAssign, Sub};
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
 use rayon::prelude::*;
 use num_traits::Float;
@@ -41,16 +42,30 @@ impl ComplexNumber {
         iter
     }
 
-    /// Adds another complex number into the current one.
-    pub fn add_into(&mut self, other: &ComplexNumber) {
-        self.real += other.real;
-        self.imag += other.imag;
-    }
-
     /// Does a smooth damp with critical damped spring to a target complex number.
     pub fn smooth_damp_to(&mut self, target: &ComplexNumber, velocity : &mut (f64, f64), smooth_time: f32, delta_time: f32) {
         self.real = smooth_damp(self.real, target.real, &mut velocity.0, smooth_time as f64, delta_time as f64);
         self.imag = smooth_damp(self.imag, target.imag, &mut velocity.1, smooth_time as f64, delta_time as f64);
+    }
+    
+    /// Gets the squared magnitude of the complex number.
+    pub fn sq_mag(&self) -> f64 {
+        self.real * self.real + self.imag * self.imag
+    }
+}
+
+impl AddAssign<ComplexNumber> for ComplexNumber {
+    fn add_assign(&mut self, other : ComplexNumber) {
+        self.real += other.real;
+        self.imag += other.imag;
+    }
+}
+
+impl Sub<ComplexNumber> for ComplexNumber {
+    type Output = ComplexNumber;
+
+    fn sub(self, rhs: ComplexNumber) -> Self::Output {
+        Self { real: self.real - rhs.real, imag: self.imag - rhs.imag }
     }
 }
 
@@ -66,7 +81,7 @@ pub fn get_iteration_field(center: ComplexNumber, extension: f64) -> Vec<u16> {
             let x_pos = x % WINDOW_WIDTH - WINDOW_WIDTH / 2;
             let mut scan =
                 ComplexNumber::new(x_pos as f64 * step_increment, y_pos as f64 * step_increment);
-            scan.add_into(&center);
+            scan += center.clone();
             scan.get_iteration_till_termination()
         })
         .collect::<Vec<u16>>()

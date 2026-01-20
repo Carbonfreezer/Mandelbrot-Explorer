@@ -45,12 +45,9 @@ enum ZoomState {
     /// Normal operation: zooming in and following focus.
     ZoomingIn,
     /// Transitioning out: zooming back to BASE_RADIUS before jumping.
-    ZoomingOut { next_center: ComplexNumber },
+    ZoomingOut,
     /// Panning to new position at BASE_RADIUS before zooming in again.
-    Panning {
-        next_center: ComplexNumber,
-        velocity: (f64, f64),
-    },
+    Panning,
 }
 
 /// Sets the windows name and the required size.
@@ -88,6 +85,7 @@ async fn main() {
     let mut center = find_interesting_start();
     let mut radius = BASE_RADIUS;
     let mut velocity = (0.0, 0.0);
+    let mut next_center = ComplexNumber::new(0.0, 0.0);
     let mut zoom_state = ZoomState::ZoomingIn;
 
     let mut image = Image::gen_image_color(WINDOW_WIDTH as u16, WINDOW_HEIGHT as u16, BLANK);
@@ -109,7 +107,7 @@ async fn main() {
         }
 
         let num_array = get_iteration_field(&center, radius);
-        
+
         // State machine logic
         zoom_state = match zoom_state {
             ZoomState::ZoomingIn => {
@@ -126,41 +124,32 @@ async fn main() {
 
                 // Check if we need to transition out
                 if radius < 1e-13 || focus.score < MIN_SCORE {
-                    let next_center = find_interesting_start();
+                    next_center = find_interesting_start();
                     velocity = (0.0, 0.0);
-                    ZoomState::ZoomingOut { next_center }
+                    ZoomState::ZoomingOut
                 } else {
                     ZoomState::ZoomingIn
                 }
             }
-            ZoomState::ZoomingOut { next_center } => {
+            ZoomState::ZoomingOut  => {
                 // Check if we've reached BASE_RADIUS
                 if radius >= BASE_RADIUS {
                     radius = BASE_RADIUS;
-                    ZoomState::Panning {
-                        next_center,
-                        velocity: (0.0, 0.0),
-                    }
+                    ZoomState::Panning
                 } else {
-                    ZoomState::ZoomingOut { next_center }
+                    ZoomState::ZoomingOut
                 }
             }
-            ZoomState::Panning {
-                next_center,
-                mut velocity,
-            } => {
+            ZoomState::Panning  => {
                 // Smooth damp center towards next_center
                 center.smooth_damp_to(&next_center, &mut velocity, PAN_SMOOTH_TIME, delta_time);
 
                 let dist_sq = (&center - &next_center).sq_mag();
                 if dist_sq < PAN_COMPLETE_THRESHOLD * PAN_COMPLETE_THRESHOLD {
-                    center = next_center;
+                    center = next_center.clone();
                     ZoomState::ZoomingIn
                 } else {
-                    ZoomState::Panning {
-                        next_center,
-                        velocity,
-                    }
+                    ZoomState::Panning
                 }
             }
         };

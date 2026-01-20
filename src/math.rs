@@ -113,7 +113,20 @@ const SAMPLE_SIZE : f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32
 
 const MAX_DIST_SQ : f32 =  ((WINDOW_WIDTH / 2).pow(2) + (WINDOW_HEIGHT / 2).pow(2)) as f32;
 
-pub fn get_focus_point(in_field: &[u16]) -> (f32, f32, f32) {
+pub struct FocusPointWithScore {
+    pub x_pos: f32,
+    pub y_pos: f32,
+    pub score: f32,
+}
+const SMOOTH_TIME: f32 = 1.25;
+impl FocusPointWithScore {
+    pub fn smooth_damp(&mut self, velocity : &mut (f32, f32), delta_time : f32) {
+        self.x_pos = smooth_damp(0.0, self.x_pos, &mut velocity.0, SMOOTH_TIME, delta_time);
+        self.y_pos = smooth_damp(0.0, self.y_pos, &mut velocity.1, SMOOTH_TIME, delta_time);
+    }
+}
+
+pub fn get_focus_point(in_field: &[u16]) -> FocusPointWithScore {
     let (best_index, score) = (0..WINDOW_WIDTH * WINDOW_HEIGHT)
         .into_par_iter()
         .map(|idx| {
@@ -152,12 +165,12 @@ pub fn get_focus_point(in_field: &[u16]) -> (f32, f32, f32) {
 
     let best_index = best_index as i32;
 
-    ((best_index % WINDOW_WIDTH - WINDOW_WIDTH / 2) as f32,
-     (best_index / WINDOW_WIDTH - WINDOW_HEIGHT / 2) as f32, score)
+    FocusPointWithScore { x_pos : (best_index % WINDOW_WIDTH - WINDOW_WIDTH / 2) as f32,
+     y_pos: (best_index / WINDOW_WIDTH - WINDOW_HEIGHT / 2) as f32, score}
 
 }
 
-pub fn smooth_damp(
+fn smooth_damp(
     current: f32,
     target: f32,
     current_velocity: &mut f32,

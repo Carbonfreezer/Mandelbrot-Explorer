@@ -4,12 +4,18 @@ mod math;
 
 use macroquad::prelude::*;
 use macroquad::rand::{gen_range, srand};
-use crate::math::{generate_colors, get_focus_point, get_iteration_field, smooth_damp, ComplexNumber};
+use crate::math::{generate_colors, get_focus_point, get_iteration_field, ComplexNumber};
 
 /// Width of the window in stand-alone mode.
 const WINDOW_WIDTH: i32 = 1280;
 /// Height of the window in stand-alone mode.
 const WINDOW_HEIGHT: i32 = 720;
+
+/// The score we minimally want to get as a starting position.
+const START_SCORE:f32 = 600.0;
+
+/// The score we minimally want till we terminate.
+const MIN_SCORE:f32 = 150.0;
 
 /// Sets the windows name and the required size.
 fn window_conf() -> Conf {
@@ -22,15 +28,15 @@ fn window_conf() -> Conf {
     }
 }
 
-const SMOOTH_TIME: f32 = 1.25;
+
 
 fn set_radius_and_rand_pos() -> (f64, ComplexNumber) {
     let radius = 0.1;
     let number = loop {
         let test = ComplexNumber::new(gen_range(-2.0, -1.0), gen_range(-1.0, 1.0));
         let num_array = get_iteration_field(test.clone(), radius);
-        let (_,_,value) = get_focus_point(&num_array);
-        if value > 600.0 {break test;}
+        let value = get_focus_point(&num_array).score;
+        if value > START_SCORE {break test;}
     };
 
     (radius, number)
@@ -64,15 +70,14 @@ async fn main() {
         let num_array = get_iteration_field(center.clone(), radius);
 
         let mut focus  = get_focus_point(&num_array);
-        focus.0 = smooth_damp(0.0, focus.0, &mut velocity.0, SMOOTH_TIME, delta_time);
-        focus.1 = smooth_damp(0.0, focus.1, &mut velocity.1, SMOOTH_TIME, delta_time);
+        focus.smooth_damp(&mut velocity, delta_time);
 
-        if (radius < 1e-13) || (focus.2 < 150.0) {
+        if (radius < 1e-13) || (focus.score < MIN_SCORE) {
             (radius,center) = set_radius_and_rand_pos();
         }
         let step = radius / (WINDOW_HEIGHT as f64 * 0.5);
-        center.real += focus.0 as f64 * step;
-        center.imag += focus.1 as f64 * step;
+        center.real += focus.x_pos as f64 * step;
+        center.imag += focus.y_pos as f64 * step;
 
         let color_array = generate_colors(&num_array);
 
@@ -85,7 +90,7 @@ async fn main() {
         });
 
 
-        let time_str = format!("Zeit: {:.3}s  Radius: {:.2e} Value: {:.3}", delta_time, radius, focus.2);
+        let time_str = format!("Zeit: {:.3}s  Radius: {:.2e} Value: {:.3}", delta_time, radius, focus.score);
         // let time_str = format!("Zeit: {:.2}s", delta_time);
         draw_text(&time_str, 20.0, 50.0, 30.0, WHITE);
 

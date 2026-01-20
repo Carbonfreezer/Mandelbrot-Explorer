@@ -91,8 +91,6 @@ async fn main() {
 
     loop {
         let delta_time = get_frame_time();
-        clear_background(BLACK);
-
         // Update radius based on current state
         match &zoom_state {
             ZoomState::ZoomingIn => {

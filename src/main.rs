@@ -21,6 +21,20 @@ const START_SCORE: f32 = 600.0;
 /// The score we minimally want till we terminate.
 const MIN_SCORE: f32 = 150.0;
 
+/// The radius at which we start zooming and to which we zoom out.
+const BASE_RADIUS: f64 = 0.1;
+
+/// Zoom-out speed multiplier (how fast we zoom out during transition).
+const ZOOM_OUT_SPEED: f64 = 4.0;
+
+/// Represents the current state of the zoom system.
+enum ZoomState {
+    /// Normal operation: zooming in and following focus.
+    ZoomingIn,
+    /// Transitioning out: zooming back to BASE_RADIUS before jumping.
+    ZoomingOut { next_center: ComplexNumber },
+}
+
 /// Sets the windows name and the required size.
 fn window_conf() -> Conf {
     Conf {
@@ -32,52 +46,77 @@ fn window_conf() -> Conf {
     }
 }
 
-/// Picks a suitable starting position and sets the initial radius to a viable value.
-fn set_radius_and_rand_pos() -> (f64, ComplexNumber) {
-    let radius = 0.1;
-    let number = loop {
+/// Finds a suitable random starting position with good variance score.
+fn find_interesting_start() -> ComplexNumber {
+    loop {
         let test = ComplexNumber::new(gen_range(-2.0, -1.0), gen_range(-1.0, 1.0));
-        let num_array = get_iteration_field(test.clone(), radius);
+        let num_array = get_iteration_field(test.clone(), BASE_RADIUS);
         let value = get_focus_point(&num_array).score;
         if value > START_SCORE {
             break test;
         }
-    };
-
-    (radius, number)
+    }
 }
 
 #[macroquad::main(window_conf)]
 async fn main() {
     srand(miniquad::date::now() as _);
-    // let mut center = ComplexNumber::new(-0.9, 0.3); // Meine
-    let mut center;
-    let mut radius;
 
-    (radius, center) = set_radius_and_rand_pos();
+    let mut center = find_interesting_start();
+    let mut radius = BASE_RADIUS;
     let radius_scaling: f64 = 0.5;
     let mut velocity = (0.0, 0.0);
+    let mut zoom_state = ZoomState::ZoomingIn;
 
     let mut image = Image::gen_image_color(WINDOW_WIDTH as u16, WINDOW_HEIGHT as u16, BLANK);
     let texture = Texture2D::from_image(&image);
 
     loop {
         let delta_time = get_frame_time();
-        radius *= radius_scaling.powf(delta_time as f64);
-
         clear_background(BLACK);
 
-        let num_array = get_iteration_field(center.clone(), radius);
-
-        let mut focus = get_focus_point(&num_array);
-        focus.smooth_damp(&mut velocity, delta_time);
-
-        if (radius < 1e-13) || (focus.score < MIN_SCORE) {
-            (radius, center) = set_radius_and_rand_pos();
+        // Update radius based on current state
+        match &zoom_state {
+            ZoomState::ZoomingIn => {
+                radius *= radius_scaling.powf(delta_time as f64);
+            }
+            ZoomState::ZoomingOut { .. } => {
+                // Zoom out faster than we zoom in
+                radius *= radius_scaling.powf(-delta_time as f64 * ZOOM_OUT_SPEED);
+            }
         }
-        let step = radius / (WINDOW_HEIGHT as f64 * 0.5);
-        center.real += focus.x_pos as f64 * step;
-        center.imag += focus.y_pos as f64 * step;
+
+        let num_array = get_iteration_field(center.clone(), radius);
+        let mut focus = get_focus_point(&num_array);
+
+        // State machine logic
+        match &zoom_state {
+            ZoomState::ZoomingIn => {
+                // Apply smooth damping and follow focus
+                focus.smooth_damp(&mut velocity, delta_time);
+
+                let step = radius / (WINDOW_HEIGHT as f64 * 0.5);
+                center.real += focus.x_pos as f64 * step;
+                center.imag += focus.y_pos as f64 * step;
+
+                // Check if we need to transition out
+                if radius < 1e-13 || focus.score < MIN_SCORE {
+                    // Find next interesting position while we zoom out
+                    let next_center = find_interesting_start();
+                    zoom_state = ZoomState::ZoomingOut { next_center };
+                    velocity = (0.0, 0.0); // Reset velocity for next zoom cycle
+                }
+            }
+            ZoomState::ZoomingOut { next_center } => {
+                // Don't follow focus during zoom-out, just let radius grow
+                // Check if we've reached BASE_RADIUS
+                if radius >= BASE_RADIUS {
+                    radius = BASE_RADIUS;
+                    center = next_center.clone();
+                    zoom_state = ZoomState::ZoomingIn;
+                }
+            }
+        }
 
         let color_array = generate_colors(&num_array);
 
@@ -95,11 +134,14 @@ async fn main() {
             },
         );
 
+        let state_str = match &zoom_state {
+            ZoomState::ZoomingIn => "IN",
+            ZoomState::ZoomingOut { .. } => "OUT",
+        };
         let time_str = format!(
-            "Zeit: {:.3}s  Radius: {:.2e} Value: {:.3}",
-            delta_time, radius, focus.score
+            "Zeit: {:.3}s  Radius: {:.2e}  Score: {:.1}  [{}]",
+            delta_time, radius, focus.score, state_str
         );
-        // let time_str = format!("Zeit: {:.2}s", delta_time);
         draw_text(&time_str, 20.0, 50.0, 30.0, WHITE);
 
         next_frame().await;

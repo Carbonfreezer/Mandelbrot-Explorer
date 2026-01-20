@@ -22,7 +22,7 @@ fn window_conf() -> Conf {
     }
 }
 
-const SMOOTH_TIME: f32 = 1.0;
+const SMOOTH_TIME: f32 = 1.25;
 
 fn set_radius_and_rand_pos() -> (f64, ComplexNumber) {
     let radius = 0.1;

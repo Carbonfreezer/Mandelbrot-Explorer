@@ -19,23 +19,21 @@ impl ComplexNumber {
         ComplexNumber { real, imag }
     }
 
-    /// Checks if we are already too large to continue iteration.
-    fn is_too_large(&self) -> bool {
-        self.real * self.real + self.imag * self.imag > 2.0 * 2.0
-    }
 
     /// Does the next step on a complex number.
-    fn next_step(&mut self, offset: &ComplexNumber) {
-        (self.real, self.imag) = (self.real * self.real - self.imag * self.imag + offset.real,
+    fn next_step(&mut self, offset: &ComplexNumber) -> bool {
+        let sq_real = self.real * self.real;
+        let sq_imag = self.imag * self.imag;
+        (self.real, self.imag) = (sq_real - sq_imag + offset.real,
                                   2.0 * self.real * self.imag + offset.imag);
+        sq_real + sq_imag < 4.0
     }
 
     /// Gets the amount of iterations we need till divergence.
     pub fn get_iteration_till_termination(&self) -> u16 {
         let mut iter = 0;
         let mut scan = ComplexNumber::default();
-        while iter < MAX_ITER && !scan.is_too_large() {
-            scan.next_step(self);
+        while iter < MAX_ITER && scan.next_step(&self) {
             iter += 1;
         }
         iter
@@ -110,7 +108,7 @@ pub fn generate_colors(in_field: &[u16]) -> Vec< Color> {
 }
 
 
-const WINDOW_STEP : i32 = 6;
+const WINDOW_STEP : i32 = 5;
 const SAMPLE_SIZE : f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32;
 
 const MAX_DIST_SQ : f32 =  ((WINDOW_WIDTH / 2).pow(2) + (WINDOW_HEIGHT / 2).pow(2)) as f32;

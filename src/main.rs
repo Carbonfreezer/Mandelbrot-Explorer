@@ -26,7 +26,12 @@ const SMOOTH_TIME: f32 = 1.25;
 
 fn set_radius_and_rand_pos() -> (f64, ComplexNumber) {
     let radius = 0.1;
-    let number = ComplexNumber::new(gen_range(-1.8, -0.9), gen_range(-0.2, 0.2));
+    let number = loop {
+        let test = ComplexNumber::new(gen_range(-2.0, -1.0), gen_range(-1.0, 1.0));
+        let num_array = get_iteration_field(test.clone(), radius);
+        let (_,_,value) = get_focus_point(&num_array);
+        if value > 600.0 {break test;}
+    };
 
     (radius, number)
 }
@@ -52,9 +57,7 @@ async fn main() {
     loop {
         let delta_time = get_frame_time();
         radius *= radius_scaling.powf(delta_time as f64);
-        if radius < 1e-13 {
-            (radius,center) = set_radius_and_rand_pos();
-        }
+
 
         clear_background(BLACK);
 
@@ -63,8 +66,11 @@ async fn main() {
         let mut focus  = get_focus_point(&num_array);
         focus.0 = smooth_damp(0.0, focus.0, &mut velocity.0, SMOOTH_TIME, delta_time);
         focus.1 = smooth_damp(0.0, focus.1, &mut velocity.1, SMOOTH_TIME, delta_time);
-        let step = radius / (WINDOW_HEIGHT as f64 * 0.5);
 
+        if (radius < 1e-13) || (focus.2 < 150.0) {
+            (radius,center) = set_radius_and_rand_pos();
+        }
+        let step = radius / (WINDOW_HEIGHT as f64 * 0.5);
         center.real += focus.0 as f64 * step;
         center.imag += focus.1 as f64 * step;
 
@@ -79,7 +85,7 @@ async fn main() {
         });
 
 
-        let time_str = format!("Zeit: {:.2}s  Radius: {:.2e}", delta_time, radius);
+        let time_str = format!("Zeit: {:.3}s  Radius: {:.2e} Value: {:.3}", delta_time, radius, focus.2);
         // let time_str = format!("Zeit: {:.2}s", delta_time);
         draw_text(&time_str, 20.0, 50.0, 30.0, WHITE);
 

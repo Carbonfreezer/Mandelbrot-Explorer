@@ -113,8 +113,8 @@ const SAMPLE_SIZE : f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32
 
 const MAX_DIST_SQ : f32 =  ((WINDOW_WIDTH / 2).pow(2) + (WINDOW_HEIGHT / 2).pow(2)) as f32;
 
-pub fn get_focus_point(in_field: &[u16]) -> (f32, f32) {
-    let best_index = (0..WINDOW_WIDTH * WINDOW_HEIGHT)
+pub fn get_focus_point(in_field: &[u16]) -> (f32, f32, f32) {
+    let (best_index, score) = (0..WINDOW_WIDTH * WINDOW_HEIGHT)
         .into_par_iter()
         .map(|idx| {
             let x = idx % WINDOW_WIDTH;
@@ -148,12 +148,12 @@ pub fn get_focus_point(in_field: &[u16]) -> (f32, f32) {
         })
         .enumerate()
         .max_by(|(_, a), (_, b)| a.total_cmp(b))
-        .unwrap()
-        .0 as i32;
+        .unwrap();
 
+    let best_index = best_index as i32;
 
     ((best_index % WINDOW_WIDTH - WINDOW_WIDTH / 2) as f32,
-     (best_index / WINDOW_WIDTH - WINDOW_HEIGHT / 2) as f32)
+     (best_index / WINDOW_WIDTH - WINDOW_HEIGHT / 2) as f32, score)
 
 }
 

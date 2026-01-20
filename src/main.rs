@@ -93,21 +93,8 @@ async fn main() {
 
     loop {
         let delta_time = get_frame_time();
-        // Update radius based on current state
-        match &zoom_state {
-            ZoomState::ZoomingIn => {
-                radius *= RADIUS_SCALING.powf(delta_time as f64);
-            }
-            ZoomState::ZoomingOut { .. } => {
-                radius *= RADIUS_SCALING.powf(-delta_time as f64 * ZOOM_OUT_SPEED);
-            }
-            ZoomState::Panning { .. } => {
-                // Hold radius constant during panning
-            }
-        }
-
         let num_array = get_iteration_field(&center, radius);
-
+        
         // State machine logic
         match zoom_state {
             ZoomState::ZoomingIn => {
@@ -128,6 +115,7 @@ async fn main() {
                     velocity = (0.0, 0.0);
                     zoom_state = ZoomState::ZoomingOut
                 }
+                radius *= RADIUS_SCALING.powf(delta_time as f64);
             }
             ZoomState::ZoomingOut  => {
                 // Check if we've reached BASE_RADIUS
@@ -135,6 +123,7 @@ async fn main() {
                     radius = BASE_RADIUS;
                     zoom_state = ZoomState::Panning
                 }
+                radius *= RADIUS_SCALING.powf(-delta_time as f64 * ZOOM_OUT_SPEED);
             }
             ZoomState::Panning  => {
                 // Smooth damp center towards next_center

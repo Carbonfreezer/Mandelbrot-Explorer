@@ -25,7 +25,7 @@ const MIN_SCORE: f32 = 150.0;
 const BASE_RADIUS: f64 = 0.2;
 
 /// The scaling factor we have for in scaling per second.
-const RADIUS_SCALING : f64 = 0.5;
+const RADIUS_SCALING: f64 = 0.5;
 
 /// Zoom-out speed multiplier (how fast we zoom out during transition).
 const ZOOM_OUT_SPEED: f64 = 4.0;
@@ -62,7 +62,12 @@ fn window_conf() -> Conf {
 
 /// Finds a suitable random starting position with good variance score.
 fn find_interesting_start() -> ComplexNumber {
+    let mut iter_count = 0;
     loop {
+        iter_count += 1;
+        if iter_count == 20 {
+            break ComplexNumber::new(-1.4, 0.0);
+        }
         let test = ComplexNumber::new(gen_range(-2.0, 1.0), gen_range(-1.0, 1.0));
         let num_array = get_iteration_field(&test, BASE_RADIUS);
         let value = get_focus_point(&num_array).score;
@@ -171,7 +176,6 @@ async fn main() {
             },
         );
 
-      
         next_frame().await;
     }
 }

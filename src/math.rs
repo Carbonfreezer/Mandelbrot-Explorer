@@ -22,6 +22,7 @@ impl ComplexNumber {
     }
 
     /// Does the next step on a complex number and returns true if we still need to iterate.
+    /// We change ourselves.
     fn next_step(&mut self, offset: &ComplexNumber) -> bool {
         let sq_real = self.real * self.real;
         let sq_imag = self.imag * self.imag;
@@ -91,6 +92,7 @@ impl Sub for &ComplexNumber {
 }
 
 /// Generates an iteration field for the given complex number as a center and an extension given as a radius.
+/// The window half height corresponds to the radius.
 pub fn get_iteration_field(center: &ComplexNumber, extension: f64) -> Vec<u16> {
     let window_height = WINDOW_HEIGHT as f64;
     let step_increment = extension / (window_height * 0.5);
@@ -117,31 +119,12 @@ pub fn smooth_damp<T: Float>(
     smooth_time: T,
     delta_time: T,
 ) -> T {
-    let zero = T::zero();
     let two = T::from(2.0).unwrap();
-    let min_smooth = T::from(0.0001).unwrap();
-
-    // Sicherstellen, dass smooth_time nicht 0 ist
-    let smooth_time = if smooth_time < min_smooth {
-        min_smooth
-    } else {
-        smooth_time
-    };
-
     let omega = two / smooth_time;
     let exp = (-omega * delta_time).exp();
     let change = current - target;
 
     let temp = (*current_velocity + omega * change) * delta_time;
     *current_velocity = (*current_velocity - omega * temp) * exp;
-
-    let mut output = target + (change + temp) * exp;
-
-    // Über-shooting verhindern
-    if (target - current > zero) == (output > target) {
-        output = target;
-        *current_velocity = zero;
-    }
-
-    output
+    target + (change + temp) * exp
 }

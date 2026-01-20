@@ -5,9 +5,13 @@ use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
 use itertools::Itertools;
 use rayon::iter::*;
 
+/// The smooth time we use for the autofocus.
+const SMOOTH_TIME: f32 = 1.25;
+/// The window size we use for variance calculation is this size * 2 + 1
 const WINDOW_STEP: i32 = 5;
+/// The amount of samples we generate in the window.
 const SAMPLE_SIZE: f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32;
-
+/// The maximum distance a pixel can be away from the center squared.
 const MAX_DIST_SQ: f32 = ((WINDOW_WIDTH / 2).pow(2) + (WINDOW_HEIGHT / 2).pow(2)) as f32;
 
 /// Contains a point to focus on with an evaluation-
@@ -16,7 +20,7 @@ pub struct FocusPointWithScore {
     pub y_pos: f32,
     pub score: f32,
 }
-const SMOOTH_TIME: f32 = 1.25;
+
 impl FocusPointWithScore {
     /// Makes the origin gravitate towards the focus point.
     pub fn smooth_damp(&mut self, velocity: &mut (f32, f32), delta_time: f32) {
@@ -33,7 +37,7 @@ pub fn get_focus_point(in_field: &[u16]) -> FocusPointWithScore {
             let x = idx % WINDOW_WIDTH;
             let y = idx / WINDOW_WIDTH;
 
-            // Randbereich ausschließen
+            // Exclude border stripe.
             if x < WINDOW_STEP
                 || y < WINDOW_STEP
                 || x >= WINDOW_WIDTH - WINDOW_STEP
@@ -42,7 +46,7 @@ pub fn get_focus_point(in_field: &[u16]) -> FocusPointWithScore {
                 return 0.0;
             }
 
-            // Varianz im Fenster berechnen
+            // Calculate variance in window.
             let (sum, sq_sum) = (-WINDOW_STEP..=WINDOW_STEP)
                 .cartesian_product(-WINDOW_STEP..=WINDOW_STEP)
                 .map(|(dx, dy)| {
@@ -53,7 +57,7 @@ pub fn get_focus_point(in_field: &[u16]) -> FocusPointWithScore {
             let mean = sum / SAMPLE_SIZE;
             let variance = sq_sum / SAMPLE_SIZE - mean * mean;
 
-            // Zentrum bevorzugen
+            // Get center bias.
             let dx = (x - WINDOW_WIDTH / 2) as f32;
             let dy = (y - WINDOW_HEIGHT / 2) as f32;
             let center_bias = 1.0 - 0.5 * (dx * dx + dy * dy) / MAX_DIST_SQ;

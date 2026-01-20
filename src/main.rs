@@ -3,6 +3,7 @@
 mod math;
 
 use macroquad::prelude::*;
+use macroquad::rand::{gen_range, srand};
 use crate::math::{generate_colors, get_focus_point, get_iteration_field, smooth_damp, ComplexNumber};
 
 /// Width of the window in stand-alone mode.
@@ -23,15 +24,24 @@ fn window_conf() -> Conf {
 
 const SMOOTH_TIME: f32 = 1.0;
 
+fn set_radius_and_rand_pos() -> (f64, ComplexNumber) {
+    let radius = 0.1;
+    let number = ComplexNumber::new(gen_range(-1.8, -0.9), gen_range(-0.2, 0.2));
+
+    (radius, number)
+}
+
+
 #[macroquad::main(window_conf)]
 async fn main() {
 
+    srand(miniquad::date::now() as _);
     // let mut center = ComplexNumber::new(-0.9, 0.3); // Meine
-    let mut center = ComplexNumber::new(-1.4, 0.0); // Feigenbaum Punkt
+    let mut center ;
+    let mut radius;
 
-
+    (radius,center) = set_radius_and_rand_pos();
     let radius_scaling: f64 = 0.5;
-    let mut radius: f64 = 0.1;
     let mut velocity = (0.0, 0.0);
 
     let mut image = Image::gen_image_color(WINDOW_WIDTH as u16, WINDOW_HEIGHT as u16, BLANK);
@@ -42,6 +52,9 @@ async fn main() {
     loop {
         let delta_time = get_frame_time();
         radius *= radius_scaling.powf(delta_time as f64);
+        if radius < 1e-13 {
+            (radius,center) = set_radius_and_rand_pos();
+        }
 
         clear_background(BLACK);
 

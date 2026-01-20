@@ -18,9 +18,6 @@ const WINDOW_HEIGHT: i32 = 720;
 /// The score we minimally want to get as a starting position.
 const START_SCORE: f32 = 800.0;
 
-/// The score we minimally want till we terminate.
-const MIN_SCORE: f32 = 150.0;
-
 /// The radius at which we start zooming and to which we zoom out.
 const BASE_RADIUS: f64 = 0.2;
 
@@ -110,7 +107,7 @@ async fn main() {
                 center.smooth_damp_to(&target_center, &mut velocity, SMOOTH_TIME, delta_time);
 
                 // Check if we need to transition out
-                if radius < 1e-13 || focus.score < MIN_SCORE {
+                if radius < 1e-13  {
                     next_center = find_interesting_start();
                     velocity = (0.0, 0.0);
                     zoom_state = ZoomState::ZoomingOut

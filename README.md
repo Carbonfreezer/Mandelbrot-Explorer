@@ -66,7 +66,7 @@ The combination produces natural-looking exploration: the view smoothly follows 
 
 The system operates in three states:
 - **Zooming In**: Normal operation, following the autofocus while continuously zooming
-- **Zooming Out**: When interest drops (low variance) or precision limits are reached, smoothly zoom back out
+- **Zooming Out**: When precision limits are reached, smoothly zoom back out
 - **Panning**: At the base zoom level, smoothly pan to a new randomly-selected interesting location
 
 This creates seamless transitions between exploration sites without jarring cuts.

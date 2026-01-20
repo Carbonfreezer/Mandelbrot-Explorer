@@ -94,7 +94,7 @@ async fn main() {
     loop {
         let delta_time = get_frame_time();
         let num_array = get_iteration_field(&center, radius);
-        
+
         // State machine logic
         match zoom_state {
             ZoomState::ZoomingIn => {
@@ -123,7 +123,9 @@ async fn main() {
                     radius = BASE_RADIUS;
                     zoom_state = ZoomState::Panning
                 }
-                radius *= RADIUS_SCALING.powf(-delta_time as f64 * ZOOM_OUT_SPEED);
+                else {
+                    radius *= RADIUS_SCALING.powf(-delta_time as f64 * ZOOM_OUT_SPEED);
+                }
             }
             ZoomState::Panning  => {
                 // Smooth damp center towards next_center

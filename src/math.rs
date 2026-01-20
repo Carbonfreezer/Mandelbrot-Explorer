@@ -79,11 +79,11 @@ impl AddAssign<ComplexNumber> for ComplexNumber {
     }
 }
 
-impl Sub<ComplexNumber> for ComplexNumber {
+impl Sub for &ComplexNumber {
     type Output = ComplexNumber;
 
-    fn sub(self, rhs: ComplexNumber) -> Self::Output {
-        Self {
+    fn sub(self, rhs: &ComplexNumber) -> Self::Output {
+        ComplexNumber {
             real: self.real - rhs.real,
             imag: self.imag - rhs.imag,
         }
@@ -91,7 +91,7 @@ impl Sub<ComplexNumber> for ComplexNumber {
 }
 
 /// Generates an iteration field for the given complex number as a center and an extension given as a radius.
-pub fn get_iteration_field(center: ComplexNumber, extension: f64) -> Vec<u16> {
+pub fn get_iteration_field(center: &ComplexNumber, extension: f64) -> Vec<u16> {
     let window_height = WINDOW_HEIGHT as f64;
     let step_increment = extension / (window_height * 0.5);
 

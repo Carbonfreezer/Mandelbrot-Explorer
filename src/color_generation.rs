@@ -60,11 +60,11 @@ fn hsv_to_rgb_color(h: f32, s: f32, v: f32) -> Color {
 }
 
 /// The amount of complete cycles we do on the hue for the complete stretch.
-const HUE_CYCLES: f32 = 5.0;
+const HUE_CYCLES: f32 = 10.0;
 /// The light intensity we use on the color.
 const COLOR_VALUE: f32 = 0.8;
 /// The color saturation we use.
-const COLOR_SATURATION: f32 = 0.7;
+const COLOR_SATURATION: f32 = 0.8;
 
 /// Takes a field with iterations and converts it into a color array.
 pub fn generate_colors(in_field: &[u16]) -> Vec<Color> {

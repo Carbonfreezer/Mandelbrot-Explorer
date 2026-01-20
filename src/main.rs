@@ -52,7 +52,7 @@ enum ZoomState {
 /// Sets the windows name and the required size.
 fn window_conf() -> Conf {
     Conf {
-        window_title: "Mandelbort".to_owned(),
+        window_title: "Mandelbrot".to_owned(),
         window_width: WINDOW_WIDTH,
         window_height: WINDOW_HEIGHT,
         fullscreen: true,
@@ -64,7 +64,7 @@ fn window_conf() -> Conf {
 fn find_interesting_start() -> ComplexNumber {
     loop {
         let test = ComplexNumber::new(gen_range(-2.0, 1.0), gen_range(-1.0, 1.0));
-        let num_array = get_iteration_field(test.clone(), BASE_RADIUS);
+        let num_array = get_iteration_field(&test, BASE_RADIUS);
         let value = get_focus_point(&num_array).score;
         if value > START_SCORE {
             break test;
@@ -101,7 +101,7 @@ async fn main() {
             }
         }
 
-        let num_array = get_iteration_field(center.clone(), radius);
+        let num_array = get_iteration_field(&center, radius);
         let mut focus = get_focus_point(&num_array);
 
         // State machine logic
@@ -142,7 +142,7 @@ async fn main() {
                 // Smooth damp center towards next_center
                 center.smooth_damp_to(&next_center, &mut velocity, PAN_SMOOTH_TIME, delta_time);
 
-                let dist_sq = (center.clone() - next_center.clone()).sq_mag();
+                let dist_sq = (&center - &next_center).sq_mag();
                 if dist_sq < PAN_COMPLETE_THRESHOLD * PAN_COMPLETE_THRESHOLD {
                     center = next_center;
                     ZoomState::ZoomingIn
@@ -171,19 +171,7 @@ async fn main() {
             },
         );
 
-        /*
-        let state_str = match &zoom_state {
-            ZoomState::ZoomingIn => "IN",
-            ZoomState::ZoomingOut { .. } => "OUT",
-            ZoomState::Panning { .. } => "PAN",
-        };
-
-        let time_str = format!(
-            "Zeit: {:.3}s  Radius: {:.2e}  Score: {:.1}  [{}]",
-            delta_time, radius, focus.score, state_str
-        );
-        draw_text(&time_str, 20.0, 50.0, 30.0, WHITE);
-        */
+      
         next_frame().await;
     }
 }

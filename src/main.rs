@@ -16,7 +16,7 @@ const WINDOW_WIDTH: i32 = 1280;
 const WINDOW_HEIGHT: i32 = 720;
 
 /// The score we minimally want to get as a starting position.
-const START_SCORE: f32 = 800.0;
+const START_SCORE: f32 = 600.0;
 
 /// The radius at which we start zooming and to which we zoom out.
 const BASE_RADIUS: f64 = 0.2;

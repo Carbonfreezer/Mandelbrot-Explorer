@@ -1,9 +1,9 @@
 //! Contains the real mandelbrot caclulations.
 
-use std::ops::{AddAssign, Sub};
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
-use rayon::prelude::*;
 use num_traits::Float;
+use rayon::prelude::*;
+use std::ops::{AddAssign, Sub};
 
 /// The maximum amount of iterations we want to do for a complex number in Mandelbbrot to check for divergence.
 pub const MAX_ITER: u16 = 100;
@@ -36,18 +36,36 @@ impl ComplexNumber {
     pub fn get_iteration_till_termination(&self) -> u16 {
         let mut iter = 0;
         let mut scan = ComplexNumber::default();
-        while iter < MAX_ITER && scan.next_step(&self) {
+        while iter < MAX_ITER && scan.next_step(self) {
             iter += 1;
         }
         iter
     }
 
     /// Does a smooth damp with critical damped spring to a target complex number.
-    pub fn smooth_damp_to(&mut self, target: &ComplexNumber, velocity : &mut (f64, f64), smooth_time: f32, delta_time: f32) {
-        self.real = smooth_damp(self.real, target.real, &mut velocity.0, smooth_time as f64, delta_time as f64);
-        self.imag = smooth_damp(self.imag, target.imag, &mut velocity.1, smooth_time as f64, delta_time as f64);
+    pub fn smooth_damp_to(
+        &mut self,
+        target: &ComplexNumber,
+        velocity: &mut (f64, f64),
+        smooth_time: f32,
+        delta_time: f32,
+    ) {
+        self.real = smooth_damp(
+            self.real,
+            target.real,
+            &mut velocity.0,
+            smooth_time as f64,
+            delta_time as f64,
+        );
+        self.imag = smooth_damp(
+            self.imag,
+            target.imag,
+            &mut velocity.1,
+            smooth_time as f64,
+            delta_time as f64,
+        );
     }
-    
+
     /// Gets the squared magnitude of the complex number.
     pub fn sq_mag(&self) -> f64 {
         self.real * self.real + self.imag * self.imag
@@ -55,7 +73,7 @@ impl ComplexNumber {
 }
 
 impl AddAssign<ComplexNumber> for ComplexNumber {
-    fn add_assign(&mut self, other : ComplexNumber) {
+    fn add_assign(&mut self, other: ComplexNumber) {
         self.real += other.real;
         self.imag += other.imag;
     }
@@ -65,7 +83,10 @@ impl Sub<ComplexNumber> for ComplexNumber {
     type Output = ComplexNumber;
 
     fn sub(self, rhs: ComplexNumber) -> Self::Output {
-        Self { real: self.real - rhs.real, imag: self.imag - rhs.imag }
+        Self {
+            real: self.real - rhs.real,
+            imag: self.imag - rhs.imag,
+        }
     }
 }
 
@@ -86,7 +107,6 @@ pub fn get_iteration_field(center: ComplexNumber, extension: f64) -> Vec<u16> {
         })
         .collect::<Vec<u16>>()
 }
-
 
 /// Generic smooth damping function that works on a critically damped spring.
 /// Works with both f32 and f64.

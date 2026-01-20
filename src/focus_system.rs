@@ -1,9 +1,9 @@
 //! The focus system searches for interesting spots based on variance.
 
+use crate::math::smooth_damp;
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
 use itertools::Itertools;
 use rayon::iter::*;
-use crate::math::smooth_damp;
 
 const WINDOW_STEP: i32 = 5;
 const SAMPLE_SIZE: f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32;
@@ -72,4 +72,3 @@ pub fn get_focus_point(in_field: &[u16]) -> FocusPointWithScore {
         score,
     }
 }
-

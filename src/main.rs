@@ -52,7 +52,7 @@ fn window_conf() -> Conf {
         window_title: "Mandelbort".to_owned(),
         window_width: WINDOW_WIDTH,
         window_height: WINDOW_HEIGHT,
-        // fullscreen: true,
+        fullscreen: true,
         ..Default::default()
     }
 }
@@ -169,17 +169,19 @@ async fn main() {
             },
         );
 
+        /*
         let state_str = match &zoom_state {
             ZoomState::ZoomingIn => "IN",
             ZoomState::ZoomingOut { .. } => "OUT",
             ZoomState::Panning { .. } => "PAN",
         };
+
         let time_str = format!(
             "Zeit: {:.3}s  Radius: {:.2e}  Score: {:.1}  [{}]",
             delta_time, radius, focus.score, state_str
         );
         draw_text(&time_str, 20.0, 50.0, 30.0, WHITE);
-
+        */
         next_frame().await;
     }
 }

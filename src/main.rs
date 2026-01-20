@@ -34,6 +34,7 @@ fn window_conf() -> Conf {
 
 
 
+/// Picks a suitable starting position and sets the initial radius to a viable value.
 fn set_radius_and_rand_pos() -> (f64, ComplexNumber) {
     let radius = 0.1;
     let number = loop {

@@ -1,3 +1,5 @@
+//! Contains the real mandelbrot caclulations.
+
 use rayon::prelude::*;
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
 
@@ -19,7 +21,7 @@ impl ComplexNumber {
     }
 
 
-    /// Does the next step on a complex number.
+    /// Does the next step on a complex number and returns true if we still need to iterate.
     fn next_step(&mut self, offset: &ComplexNumber) -> bool {
         let sq_real = self.real * self.real;
         let sq_imag = self.imag * self.imag;
@@ -38,10 +40,12 @@ impl ComplexNumber {
         iter
     }
 
+    /// Adds another complex number into the current one.
     pub fn add_into(&mut self, other: &ComplexNumber) {
         self.real += other.real;
         self.imag += other.imag;
     }
+    
 }
 
 

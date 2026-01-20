@@ -1,3 +1,5 @@
+//! Module is responsible for mapping the iteration field to a color value. It us using a cyclicle color map here. 
+
 use rayon::iter::ParallelIterator;
 use macroquad::color::{Color, BLACK};
 use rayon::iter::IntoParallelRefIterator;

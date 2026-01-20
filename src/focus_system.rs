@@ -1,12 +1,13 @@
 //! The focus system searches for interesting spots based on variance.
 
-use rayon::iter::*;
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
+use itertools::Itertools;
+use rayon::iter::*;
 
-const WINDOW_STEP : i32 = 5;
-const SAMPLE_SIZE : f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32;
+const WINDOW_STEP: i32 = 5;
+const SAMPLE_SIZE: f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32;
 
-const MAX_DIST_SQ : f32 =  ((WINDOW_WIDTH / 2).pow(2) + (WINDOW_HEIGHT / 2).pow(2)) as f32;
+const MAX_DIST_SQ: f32 = ((WINDOW_WIDTH / 2).pow(2) + (WINDOW_HEIGHT / 2).pow(2)) as f32;
 
 /// Contains a point to focus on with an evaluation-
 pub struct FocusPointWithScore {
@@ -17,12 +18,11 @@ pub struct FocusPointWithScore {
 const SMOOTH_TIME: f32 = 1.25;
 impl FocusPointWithScore {
     /// Makes the origin gravitate towards the focus point.
-    pub fn smooth_damp(&mut self, velocity : &mut (f32, f32), delta_time : f32) {
+    pub fn smooth_damp(&mut self, velocity: &mut (f32, f32), delta_time: f32) {
         self.x_pos = smooth_damp(0.0, self.x_pos, &mut velocity.0, SMOOTH_TIME, delta_time);
         self.y_pos = smooth_damp(0.0, self.y_pos, &mut velocity.1, SMOOTH_TIME, delta_time);
     }
 }
-
 
 /// Gets a focus point (including score) from the iteration field handed over.
 pub fn get_focus_point(in_field: &[u16]) -> FocusPointWithScore {
@@ -33,7 +33,8 @@ pub fn get_focus_point(in_field: &[u16]) -> FocusPointWithScore {
             let y = idx / WINDOW_WIDTH;
 
             // Randbereich ausschließen
-            if x < WINDOW_STEP || y < WINDOW_STEP
+            if x < WINDOW_STEP
+                || y < WINDOW_STEP
                 || x >= WINDOW_WIDTH - WINDOW_STEP
                 || y >= WINDOW_HEIGHT - WINDOW_STEP
             {
@@ -42,7 +43,7 @@ pub fn get_focus_point(in_field: &[u16]) -> FocusPointWithScore {
 
             // Varianz im Fenster berechnen
             let (sum, sq_sum) = (-WINDOW_STEP..=WINDOW_STEP)
-                .flat_map(|dx| (-WINDOW_STEP..=WINDOW_STEP).map(move |dy| (dx, dy)))
+                .cartesian_product(-WINDOW_STEP..=WINDOW_STEP)
                 .map(|(dx, dy)| {
                     in_field[(x + dx) as usize + ((y + dy) * WINDOW_WIDTH) as usize] as f32
                 })
@@ -64,11 +65,12 @@ pub fn get_focus_point(in_field: &[u16]) -> FocusPointWithScore {
 
     let best_index = best_index as i32;
 
-    FocusPointWithScore { x_pos : (best_index % WINDOW_WIDTH - WINDOW_WIDTH / 2) as f32,
-        y_pos: (best_index / WINDOW_WIDTH - WINDOW_HEIGHT / 2) as f32, score}
-
+    FocusPointWithScore {
+        x_pos: (best_index % WINDOW_WIDTH - WINDOW_WIDTH / 2) as f32,
+        y_pos: (best_index / WINDOW_WIDTH - WINDOW_HEIGHT / 2) as f32,
+        score,
+    }
 }
-
 
 /// Helper smooth damping function that works on a critically damped spring.
 fn smooth_damp(
@@ -83,7 +85,6 @@ fn smooth_damp(
     let omega = 2.0 / smooth_time;
     let exp = (-omega * delta_time).exp();
     let change = current - target;
-
 
     let temp = (*current_velocity + omega * change) * delta_time;
     *current_velocity = (*current_velocity - omega * temp) * exp;

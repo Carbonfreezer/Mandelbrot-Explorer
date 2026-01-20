@@ -2,8 +2,6 @@
 
 use crate::math::MAX_ITER;
 use macroquad::color::{BLACK, Color};
-use rayon::iter::IntoParallelRefIterator;
-use rayon::iter::ParallelIterator;
 
 /// Converts hsv to rgb color.
 fn hsv_to_rgb_color(h: f32, s: f32, v: f32) -> Color {
@@ -69,7 +67,7 @@ const COLOR_SATURATION: f32 = 0.8;
 /// Takes a field with iterations and converts it into a color array.
 pub fn generate_colors(in_field: &[u16]) -> Vec<Color> {
     in_field
-        .par_iter()
+        .iter()
         .map(|i| {
             if *i == MAX_ITER {
                 BLACK

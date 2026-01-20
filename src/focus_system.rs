@@ -3,6 +3,7 @@
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
 use itertools::Itertools;
 use rayon::iter::*;
+use crate::math::smooth_damp;
 
 const WINDOW_STEP: i32 = 5;
 const SAMPLE_SIZE: f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32;
@@ -72,30 +73,3 @@ pub fn get_focus_point(in_field: &[u16]) -> FocusPointWithScore {
     }
 }
 
-/// Helper smooth damping function that works on a critically damped spring.
-fn smooth_damp(
-    current: f32,
-    target: f32,
-    current_velocity: &mut f32,
-    smooth_time: f32,
-    delta_time: f32,
-) -> f32 {
-    // Sicherstellen, dass smooth_time nicht 0 ist, um Division durch Null zu vermeiden
-    let smooth_time = smooth_time.max(0.0001);
-    let omega = 2.0 / smooth_time;
-    let exp = (-omega * delta_time).exp();
-    let change = current - target;
-
-    let temp = (*current_velocity + omega * change) * delta_time;
-    *current_velocity = (*current_velocity - omega * temp) * exp;
-
-    let mut output = target + (change + temp) * exp;
-
-    // Über-shooting verhindern
-    if (target - current > 0.0) == (output > target) {
-        output = target;
-        *current_velocity = 0.0;
-    }
-
-    output
-}

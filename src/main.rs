@@ -25,7 +25,13 @@ const MIN_SCORE: f32 = 150.0;
 const BASE_RADIUS: f64 = 0.1;
 
 /// Zoom-out speed multiplier (how fast we zoom out during transition).
-const ZOOM_OUT_SPEED: f64 = 4.0;
+const ZOOM_OUT_SPEED: f64 = 8.0;
+
+/// Smooth time for panning between positions (in seconds).
+const PAN_SMOOTH_TIME: f32 = 0.5;
+
+/// Threshold for considering the pan complete (in complex plane units).
+const PAN_COMPLETE_THRESHOLD: f64 = 0.001;
 
 /// Represents the current state of the zoom system.
 enum ZoomState {
@@ -33,6 +39,11 @@ enum ZoomState {
     ZoomingIn,
     /// Transitioning out: zooming back to BASE_RADIUS before jumping.
     ZoomingOut { next_center: ComplexNumber },
+    /// Panning to new position at BASE_RADIUS before zooming in again.
+    Panning {
+        next_center: ComplexNumber,
+        velocity: (f64, f64),
+    },
 }
 
 /// Sets the windows name and the required size.
@@ -81,8 +92,10 @@ async fn main() {
                 radius *= radius_scaling.powf(delta_time as f64);
             }
             ZoomState::ZoomingOut { .. } => {
-                // Zoom out faster than we zoom in
                 radius *= radius_scaling.powf(-delta_time as f64 * ZOOM_OUT_SPEED);
+            }
+            ZoomState::Panning { .. } => {
+                // Hold radius constant during panning
             }
         }
 
@@ -90,7 +103,7 @@ async fn main() {
         let mut focus = get_focus_point(&num_array);
 
         // State machine logic
-        match &zoom_state {
+        zoom_state = match zoom_state {
             ZoomState::ZoomingIn => {
                 // Apply smooth damping and follow focus
                 focus.smooth_damp(&mut velocity, delta_time);
@@ -101,22 +114,47 @@ async fn main() {
 
                 // Check if we need to transition out
                 if radius < 1e-13 || focus.score < MIN_SCORE {
-                    // Find next interesting position while we zoom out
                     let next_center = find_interesting_start();
-                    zoom_state = ZoomState::ZoomingOut { next_center };
-                    velocity = (0.0, 0.0); // Reset velocity for next zoom cycle
+                    velocity = (0.0, 0.0);
+                    ZoomState::ZoomingOut { next_center }
+                } else {
+                    ZoomState::ZoomingIn
                 }
             }
             ZoomState::ZoomingOut { next_center } => {
-                // Don't follow focus during zoom-out, just let radius grow
                 // Check if we've reached BASE_RADIUS
                 if radius >= BASE_RADIUS {
                     radius = BASE_RADIUS;
-                    center = next_center.clone();
-                    zoom_state = ZoomState::ZoomingIn;
+                    ZoomState::Panning {
+                        next_center,
+                        velocity: (0.0, 0.0),
+                    }
+                } else {
+                    ZoomState::ZoomingOut { next_center }
                 }
             }
-        }
+            ZoomState::Panning {
+                next_center,
+                mut velocity,
+            } => {
+                // Smooth damp center towards next_center
+                center.smooth_damp_to(&next_center, &mut velocity, PAN_SMOOTH_TIME, delta_time);
+
+                // Check if we've arrived
+                let dist_sq = (center.real - next_center.real).powi(2)
+                    + (center.imag - next_center.imag).powi(2);
+
+                if dist_sq < PAN_COMPLETE_THRESHOLD * PAN_COMPLETE_THRESHOLD {
+                    center = next_center;
+                    ZoomState::ZoomingIn
+                } else {
+                    ZoomState::Panning {
+                        next_center,
+                        velocity,
+                    }
+                }
+            }
+        };
 
         let color_array = generate_colors(&num_array);
 
@@ -137,6 +175,7 @@ async fn main() {
         let state_str = match &zoom_state {
             ZoomState::ZoomingIn => "IN",
             ZoomState::ZoomingOut { .. } => "OUT",
+            ZoomState::Panning { .. } => "PAN",
         };
         let time_str = format!(
             "Zeit: {:.3}s  Radius: {:.2e}  Score: {:.1}  [{}]",

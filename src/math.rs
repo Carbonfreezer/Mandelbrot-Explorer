@@ -73,8 +73,8 @@ impl ComplexNumber {
     }
 }
 
-impl AddAssign<ComplexNumber> for ComplexNumber {
-    fn add_assign(&mut self, other: ComplexNumber) {
+impl AddAssign<&ComplexNumber> for ComplexNumber {
+    fn add_assign(&mut self, other: &ComplexNumber) {
         self.real += other.real;
         self.imag += other.imag;
     }
@@ -104,7 +104,7 @@ pub fn get_iteration_field(center: &ComplexNumber, extension: f64) -> Vec<u16> {
             let x_pos = x % WINDOW_WIDTH - WINDOW_WIDTH / 2;
             let mut scan =
                 ComplexNumber::new(x_pos as f64 * step_increment, y_pos as f64 * step_increment);
-            scan += center.clone();
+            scan += &center;
             scan.get_iteration_till_termination()
         })
         .collect::<Vec<u16>>()

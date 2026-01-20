@@ -24,8 +24,11 @@ const MIN_SCORE: f32 = 150.0;
 /// The radius at which we start zooming and to which we zoom out.
 const BASE_RADIUS: f64 = 0.2;
 
+/// The scaling factor we have for in scaling per second.
+const RADIUS_SCALING : f64 = 0.5;
+
 /// Zoom-out speed multiplier (how fast we zoom out during transition).
-const ZOOM_OUT_SPEED: f64 = 8.0;
+const ZOOM_OUT_SPEED: f64 = 4.0;
 
 /// Smooth time for panning between positions (in seconds).
 const PAN_SMOOTH_TIME: f32 = 0.5;
@@ -75,7 +78,6 @@ async fn main() {
 
     let mut center = find_interesting_start();
     let mut radius = BASE_RADIUS;
-    let radius_scaling: f64 = 0.5;
     let mut velocity = (0.0, 0.0);
     let mut zoom_state = ZoomState::ZoomingIn;
 
@@ -89,10 +91,10 @@ async fn main() {
         // Update radius based on current state
         match &zoom_state {
             ZoomState::ZoomingIn => {
-                radius *= radius_scaling.powf(delta_time as f64);
+                radius *= RADIUS_SCALING.powf(delta_time as f64);
             }
             ZoomState::ZoomingOut { .. } => {
-                radius *= radius_scaling.powf(-delta_time as f64 * ZOOM_OUT_SPEED);
+                radius *= RADIUS_SCALING.powf(-delta_time as f64 * ZOOM_OUT_SPEED);
             }
             ZoomState::Panning { .. } => {
                 // Hold radius constant during panning

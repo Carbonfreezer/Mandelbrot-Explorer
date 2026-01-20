@@ -33,6 +33,10 @@ const ZOOM_OUT_SPEED: f64 = 4.0;
 /// Smooth time for panning between positions (in seconds).
 const PAN_SMOOTH_TIME: f32 = 0.5;
 
+/// The smooth time we use for the autofocus.
+const SMOOTH_TIME: f32 = 1.25;
+
+
 /// Threshold for considering the pan complete (in complex plane units).
 const PAN_COMPLETE_THRESHOLD: f64 = 0.001;
 
@@ -105,17 +109,20 @@ async fn main() {
         }
 
         let num_array = get_iteration_field(&center, radius);
-        let mut focus = get_focus_point(&num_array);
-
+        
         // State machine logic
         zoom_state = match zoom_state {
             ZoomState::ZoomingIn => {
-                // Apply smooth damping and follow focus
-                focus.smooth_damp(&mut velocity, delta_time);
-
+                // compute the target center we want to approach
+                let focus = get_focus_point(&num_array);
                 let step = radius / (WINDOW_HEIGHT as f64 * 0.5);
-                center.real += focus.x_pos as f64 * step;
-                center.imag += focus.y_pos as f64 * step;
+                let target_center = ComplexNumber::new(
+                    center.real + focus.x_pos as f64 * step,
+                    center.imag + focus.y_pos as f64 * step,
+                );
+
+                // smoothly move center towards target_center using the existing ComplexNumber smoothing
+                center.smooth_damp_to(&target_center, &mut velocity, SMOOTH_TIME, delta_time);
 
                 // Check if we need to transition out
                 if radius < 1e-13 || focus.score < MIN_SCORE {

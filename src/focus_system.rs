@@ -1,12 +1,9 @@
 //! The focus system searches for interesting spots based on variance.
 
-use crate::math::smooth_damp;
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
 use itertools::Itertools;
 use rayon::iter::*;
 
-/// The smooth time we use for the autofocus.
-const SMOOTH_TIME: f32 = 1.25;
 /// The window size we use for variance calculation is this size * 2 + 1
 const WINDOW_STEP: i32 = 5;
 /// The amount of samples we generate in the window.
@@ -19,14 +16,6 @@ pub struct FocusPointWithScore {
     pub x_pos: f32,
     pub y_pos: f32,
     pub score: f32,
-}
-
-impl FocusPointWithScore {
-    /// Makes the origin gravitate towards the focus point.
-    pub fn smooth_damp(&mut self, velocity: &mut (f32, f32), delta_time: f32) {
-        self.x_pos = smooth_damp(0.0, self.x_pos, &mut velocity.0, SMOOTH_TIME, delta_time);
-        self.y_pos = smooth_damp(0.0, self.y_pos, &mut velocity.1, SMOOTH_TIME, delta_time);
-    }
 }
 
 /// Gets a focus point (including score) from the iteration field handed over.

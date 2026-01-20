@@ -1,7 +1,6 @@
 //! Contains the real mandelbrot caclulations.
 
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
-use num_traits::Float;
 use rayon::prelude::*;
 use std::ops::{AddAssign, Sub};
 
@@ -111,16 +110,14 @@ pub fn get_iteration_field(center: &ComplexNumber, extension: f64) -> Vec<u16> {
 }
 
 /// Generic smooth damping function that works on a critically damped spring.
-/// Works with both f32 and f64.
-pub fn smooth_damp<T: Float>(
-    current: T,
-    target: T,
-    current_velocity: &mut T,
-    smooth_time: T,
-    delta_time: T,
-) -> T {
-    let two = T::from(2.0).unwrap();
-    let omega = two / smooth_time;
+ fn smooth_damp(
+    current: f64,
+    target: f64,
+    current_velocity: &mut f64,
+    smooth_time: f64,
+    delta_time: f64,
+) -> f64 {
+    let omega = 2.0 / smooth_time;
     let exp = (-omega * delta_time).exp();
     let change = current - target;
 

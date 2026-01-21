@@ -46,7 +46,7 @@ cargo run --release
 
 The `--release` flag is crucial - debug builds are roughly 10x slower due to missing optimizations.
 
-The application launches in fullscreen mode. Press `Alt+F4` to exit.
+The application launches in fullscreen mode. Press `Escape` or `Alt+F4` to exit.
 
 ## How It Works
 

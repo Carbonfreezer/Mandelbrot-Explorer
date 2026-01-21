@@ -5,7 +5,7 @@ mod focus_system;
 mod math;
 
 use crate::color_generation::generate_colors;
-use crate::focus_system::get_focus_point;
+use crate::focus_system::{FocusPointWithScore};
 use crate::math::{ComplexNumber, get_iteration_field};
 use macroquad::prelude::*;
 use macroquad::rand::{gen_range, srand};
@@ -78,9 +78,10 @@ fn find_interesting_start() -> ComplexNumber {
         }
         let test = ComplexNumber::new(gen_range(-2.0, 1.0), gen_range(-1.0, 1.0));
         let num_array = get_iteration_field(&test, START_FOCUS_RADIUS);
-        let value = get_focus_point(&num_array).score;
-        if value > ITER_TARGET_SCORE {
-            break test;
+        let focus = FocusPointWithScore::new(&num_array);
+        if focus.score() > ITER_TARGET_SCORE {
+            // Pick the point we will gravitate to anyway.
+            break focus.get_absolute_focus_in_complex_number_pane(&test,START_FOCUS_RADIUS);
         }
     }
 }
@@ -99,6 +100,8 @@ async fn main() {
     let texture = Texture2D::from_image(&image);
 
     loop {
+        if is_key_pressed(KeyCode::Escape) { break; }
+
         let delta_time = get_frame_time() as f64;
         let num_array = get_iteration_field(&center, radius);
 
@@ -113,12 +116,8 @@ async fn main() {
             }
             ZoomState::ZoomingInAndFollowing => {
                 // compute the target center we want to approach
-                let focus = get_focus_point(&num_array);
-                let step = radius / (WINDOW_HEIGHT as f64 * 0.5);
-                let target_center = ComplexNumber::new(
-                    center.real + focus.x_pos as f64 * step,
-                    center.imag + focus.y_pos as f64 * step,
-                );
+                let focus = FocusPointWithScore::new(&num_array);
+                let target_center = focus.get_absolute_focus_in_complex_number_pane(&center, radius);
 
                 // smoothly move center towards target_center using the existing ComplexNumber smoothing
                 center.smooth_damp_to(&target_center, &mut velocity, FOCUS_SMOOTH_TIME, delta_time);

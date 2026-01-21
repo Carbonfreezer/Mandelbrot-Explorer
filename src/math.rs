@@ -4,7 +4,7 @@ use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
 use rayon::prelude::*;
 use std::ops::{AddAssign, Sub};
 
-/// The maximum amount of iterations we want to do for a complex number in Mandelbbrot to check for divergence.
+/// The maximum amount of iterations we want to do for a complex number in Mandelbrot to check for divergence.
 pub const MAX_ITER: u16 = 100;
 
 /// Complex number used in Mandelbrot in double precision.

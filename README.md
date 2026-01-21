@@ -64,7 +64,7 @@ The combination produces natural-looking exploration: the view smoothly follows 
 
 ### State Machine
 
-The system operates in three states:
+The system operates in four states:
 - **Start Zooming**: Zoom in on the chosen point without autofocus adjustment.
 - **Zooming In And Following**: Normal operation, following the autofocus while continuously zooming
 - **Zooming Out**: When precision limits are reached, smoothly zoom back out

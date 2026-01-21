@@ -8,7 +8,7 @@ use std::ops::{AddAssign, Sub};
 pub const MAX_ITER: u16 = 100;
 
 /// Complex number used in Mandelbrot in double precision.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct ComplexNumber {
     pub real: f64,
     pub imag: f64,
@@ -22,7 +22,7 @@ impl ComplexNumber {
 
     /// Does the next step on a complex number and returns true if we still need to iterate.
     /// We change ourselves.
-    fn next_step(&mut self, offset: &ComplexNumber) -> bool {
+    fn next_step(&mut self, offset: ComplexNumber) -> bool {
         let sq_real = self.real * self.real;
         let sq_imag = self.imag * self.imag;
         (self.real, self.imag) = (
@@ -36,7 +36,7 @@ impl ComplexNumber {
     pub fn get_iteration_till_termination(&self) -> u16 {
         let mut iter = 0;
         let mut scan = ComplexNumber::default();
-        while iter < MAX_ITER && scan.next_step(self) {
+        while iter < MAX_ITER && scan.next_step(*self) {
             iter += 1;
         }
         iter
@@ -45,7 +45,7 @@ impl ComplexNumber {
     /// Does a smooth damp with critical damped spring to a target complex number.
     pub fn smooth_damp_to(
         &mut self,
-        target: &ComplexNumber,
+        target: ComplexNumber,
         velocity: &mut (f64, f64),
         smooth_time: f64,
         delta_time: f64,
@@ -72,17 +72,17 @@ impl ComplexNumber {
     }
 }
 
-impl AddAssign<&ComplexNumber> for ComplexNumber {
-    fn add_assign(&mut self, other: &ComplexNumber) {
+impl AddAssign<ComplexNumber> for ComplexNumber {
+    fn add_assign(&mut self, other: ComplexNumber) {
         self.real += other.real;
         self.imag += other.imag;
     }
 }
 
-impl Sub for &ComplexNumber {
+impl Sub for ComplexNumber {
     type Output = ComplexNumber;
 
-    fn sub(self, rhs: &ComplexNumber) -> Self::Output {
+    fn sub(self, rhs: ComplexNumber) -> Self::Output {
         ComplexNumber {
             real: self.real - rhs.real,
             imag: self.imag - rhs.imag,
@@ -92,7 +92,7 @@ impl Sub for &ComplexNumber {
 
 /// Generates an iteration field for the given complex number as a center and an extension given as a radius.
 /// The window half height corresponds to the radius.
-pub fn get_iteration_field(center: &ComplexNumber, extension: f64) -> Vec<u16> {
+pub fn get_iteration_field(center: ComplexNumber, extension: f64) -> Vec<u16> {
     let window_height = WINDOW_HEIGHT as f64;
     let step_increment = extension / (window_height * 0.5);
 

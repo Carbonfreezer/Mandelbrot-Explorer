@@ -75,7 +75,7 @@ impl FocusPointWithScore {
     /// Given a screen center in the complex number pane and an applied radius the focus gets converted into a target position in the complex number pane.
     pub fn get_absolute_focus_in_complex_number_pane(
         &self,
-        center: &ComplexNumber,
+        center: ComplexNumber,
         radius: f64,
     ) -> ComplexNumber {
         let step = radius / (WINDOW_HEIGHT as f64 * 0.5);
@@ -111,8 +111,8 @@ pub struct StartPointForZoom {
 
 impl StartPointForZoom {
     /// Extracts the current starting point.
-    pub fn starting_point(&self) -> &ComplexNumber {
-        &self.starting_point
+    pub fn starting_point(&self) -> ComplexNumber {
+        self.starting_point
     }
 
     /// Generates a new sample and sees if this is better than the old one. It distributes the computation
@@ -127,12 +127,12 @@ impl StartPointForZoom {
             if focus.score() > self.score {
                 self.score = focus.score();
                 self.starting_point =
-                    focus.get_absolute_focus_in_complex_number_pane(test, START_FOCUS_RADIUS);
+                    focus.get_absolute_focus_in_complex_number_pane(*test, START_FOCUS_RADIUS);
             }
             self.precomputed_field = None;
         } else {
             let test = ComplexNumber::new(gen_range(-2.0, 1.0), gen_range(-1.0, 1.0));
-            let num_array = get_iteration_field(&test, START_FOCUS_RADIUS);
+            let num_array = get_iteration_field(test, START_FOCUS_RADIUS);
             self.precomputed_field = Some((num_array, test));
         }
     }

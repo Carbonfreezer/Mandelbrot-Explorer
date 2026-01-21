@@ -80,7 +80,7 @@ async fn main() {
         }
 
         let delta_time = get_frame_time() as f64;
-        let num_array = get_iteration_field(&center, radius);
+        let num_array = get_iteration_field(center, radius);
 
         // State machine logic
         match zoom_state {
@@ -95,10 +95,10 @@ async fn main() {
                 // compute the target center we want to approach
                 let focus = FocusPointWithScore::new(&num_array);
                 let target_center =
-                    focus.get_absolute_focus_in_complex_number_pane(&center, radius);
+                    focus.get_absolute_focus_in_complex_number_pane(center, radius);
 
                 // smoothly move center towards target_center using the existing ComplexNumber smoothing
-                center.smooth_damp_to(&target_center, &mut velocity, FOCUS_SMOOTH_TIME, delta_time);
+                center.smooth_damp_to(target_center, &mut velocity, FOCUS_SMOOTH_TIME, delta_time);
 
                 // Check if we need to transition out
                 if radius < 1e-13 {
@@ -127,9 +127,9 @@ async fn main() {
                     delta_time,
                 );
 
-                let dist_sq = (&center - best_start_candidate.starting_point()).sq_mag();
+                let dist_sq = (center - best_start_candidate.starting_point()).sq_mag();
                 if dist_sq < PAN_COMPLETE_THRESHOLD * PAN_COMPLETE_THRESHOLD {
-                    center = best_start_candidate.starting_point().clone();
+                    center = best_start_candidate.starting_point();
                     zoom_state = ZoomState::StartZooming;
                 }
             }

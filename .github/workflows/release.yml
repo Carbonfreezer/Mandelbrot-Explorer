@@ -49,12 +49,13 @@ jobs:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: find artifacts -type f
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            mandelbrot-explorer-linux-x64/*
-            mandelbrot-explorer-windows-x64/*
-            mandelbrot-explorer-macos-x64/*
-            mandelbrot-explorer-macos-arm64/*
+          files: artifacts/**/*

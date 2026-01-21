@@ -16,10 +16,13 @@ const WINDOW_WIDTH: i32 = 1280;
 const WINDOW_HEIGHT: i32 = 720;
 
 /// The score we minimally want to get as a starting position.
-const START_SCORE: f32 = 800.0;
+const ITER_TARGET_SCORE: f32 = 200.0;
 
-/// The radius at which we start zooming and to which we zoom out.
-const START_ZOOMING_RADIUS: f64 = 0.2;
+/// The maximum iteration attempts we make to search for a new focus point.
+const MAX_ITER_ATTEMPTS: u8 = 30;
+
+/// The radius at which we start using the autofocus.
+const START_FOCUS_RADIUS: f64 = 0.05;
 
 /// The radius where we start with.
 const START_RADIUS: f64 = 1.5;
@@ -40,8 +43,7 @@ const FOCUS_SMOOTH_TIME: f64 = 1.25;
 /// Threshold for considering the pan complete (in complex plane units).
 const PAN_COMPLETE_THRESHOLD: f64 = 0.01;
 
-/// The maximum iteration attempts we make to search for a new focus point.
-const MAX_ITER_ATTEMPTS: u8 = 30;
+
 
 /// Represents the current state of the zoom system.
 enum ZoomState {
@@ -75,9 +77,9 @@ fn find_interesting_start() -> ComplexNumber {
             break ComplexNumber::new(-1.4, 0.0);
         }
         let test = ComplexNumber::new(gen_range(-2.0, 1.0), gen_range(-1.0, 1.0));
-        let num_array = get_iteration_field(&test, START_ZOOMING_RADIUS);
+        let num_array = get_iteration_field(&test, START_FOCUS_RADIUS);
         let value = get_focus_point(&num_array).score;
-        if value > START_SCORE {
+        if value > ITER_TARGET_SCORE {
             break test;
         }
     }
@@ -104,8 +106,8 @@ async fn main() {
         match zoom_state {
             ZoomState::StartZooming => {
                 radius *= RADIUS_SCALING.powf(delta_time);
-                if radius <= START_ZOOMING_RADIUS {
-                    radius = START_ZOOMING_RADIUS;
+                if radius <= START_FOCUS_RADIUS {
+                    radius = START_FOCUS_RADIUS;
                     zoom_state = ZoomState::ZoomingInAndFollowing;
                 }
             }

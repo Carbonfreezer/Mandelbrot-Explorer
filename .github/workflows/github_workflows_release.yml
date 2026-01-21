@@ -1,0 +1,112 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: mandelbrot-explorer-linux-x64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: mandelbrot-explorer-windows-x64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact: mandelbrot-explorer-macos-x64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact: mandelbrot-explorer-macos-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            target/${{ matrix.target }}/release/mandelbrot-explorer
+            target/${{ matrix.target }}/release/mandelbrot-explorer.exe
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts to ./artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets with unique names
+        run: |
+          set -euo pipefail
+          mkdir -p release_assets
+
+          # Copy artifacts into uniquely-named files to avoid basename collisions
+          if [ -f "artifacts/mandelbrot-explorer-linux-x64/mandelbrot-explorer" ]; then
+            cp "artifacts/mandelbrot-explorer-linux-x64/mandelbrot-explorer" release_assets/mandelbrot-explorer-linux-x64
+          fi
+
+          if [ -f "artifacts/mandelbrot-explorer-macos-x64/mandelbrot-explorer" ]; then
+            cp "artifacts/mandelbrot-explorer-macos-x64/mandelbrot-explorer" release_assets/mandelbrot-explorer-macos-x64
+          fi
+
+          if [ -f "artifacts/mandelbrot-explorer-macos-arm64/mandelbrot-explorer" ]; then
+            cp "artifacts/mandelbrot-explorer-macos-arm64/mandelbrot-explorer" release_assets/mandelbrot-explorer-macos-arm64
+          fi
+
+          if [ -f "artifacts/mandelbrot-explorer-windows-x64/mandelbrot-explorer.exe" ]; then
+            cp "artifacts/mandelbrot-explorer-windows-x64/mandelbrot-explorer.exe" release_assets/mandelbrot-explorer-windows-x64.exe
+          fi
+
+          echo "Prepared release_assets:"
+          ls -la release_assets || true
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPLOAD_URL: ${{ steps.create_release.outputs.upload_url }}
+        run: |
+          set -euo pipefail
+          # Strip the template part from upload_url (e.g. { ?name,label })
+          upload_url="${UPLOAD_URL%\{*}"
+
+          for f in release_assets/*; do
+            [ -e "$f" ] || continue
+            filename=$(basename "$f")
+            echo "Uploading $filename ..."
+            curl -sSL \
+              -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary @"$f" \
+              "$upload_url?name=$filename" \
+              | jq -r '.url // "uploaded (no json url returned)"' || true
+          done

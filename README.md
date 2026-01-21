@@ -65,7 +65,8 @@ The combination produces natural-looking exploration: the view smoothly follows 
 ### State Machine
 
 The system operates in three states:
-- **Zooming In**: Normal operation, following the autofocus while continuously zooming
+- **Start Zooming**: Zoom in on the chosen point without autofocus adjustment.
+- **Zooming In And Following**: Normal operation, following the autofocus while continuously zooming
 - **Zooming Out**: When precision limits are reached, smoothly zoom back out
 - **Panning**: At the base zoom level, smoothly pan to a new randomly-selected interesting location
 

@@ -1,5 +1,6 @@
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 
+use rayon::iter::ParallelIterator;
 mod color_generation;
 mod focus_system;
 mod math;
@@ -9,6 +10,7 @@ use crate::focus_system::{FocusPointWithScore};
 use crate::math::{ComplexNumber, get_iteration_field};
 use macroquad::prelude::*;
 use macroquad::rand::{gen_range, srand};
+use rayon::iter::IntoParallelIterator;
 
 /// Width of the window in stand-alone mode.
 const WINDOW_WIDTH: i32 = 1280;
@@ -19,7 +21,7 @@ const WINDOW_HEIGHT: i32 = 720;
 const ITER_TARGET_SCORE: f32 = 200.0;
 
 /// The maximum iteration attempts we make to search for a new focus point.
-const MAX_ITER_ATTEMPTS: u8 = 30;
+const MAX_ITER_ATTEMPTS: u8 = 6;
 
 /// The radius at which we start using the autofocus.
 const START_FOCUS_RADIUS: f64 = 0.05;
@@ -63,27 +65,28 @@ fn window_conf() -> Conf {
         window_title: "Mandelbrot".to_owned(),
         window_width: WINDOW_WIDTH,
         window_height: WINDOW_HEIGHT,
-        fullscreen: true,
+        // fullscreen: true,
         ..Default::default()
     }
 }
 
 /// Finds a suitable random starting position with good variance score.
 fn find_interesting_start() -> ComplexNumber {
-    let mut iter_count = 0;
-    loop {
-        iter_count += 1;
-        if iter_count == MAX_ITER_ATTEMPTS {
-            break ComplexNumber::new(-1.4, 0.0);
-        }
+
+    let best_focus = (0..MAX_ITER_ATTEMPTS).into_par_iter().map(|_| {
         let test = ComplexNumber::new(gen_range(-2.0, 1.0), gen_range(-1.0, 1.0));
         let num_array = get_iteration_field(&test, START_FOCUS_RADIUS);
-        let focus = FocusPointWithScore::new(&num_array);
-        if focus.score() > ITER_TARGET_SCORE {
-            // Pick the point we will gravitate to anyway.
-            break focus.get_absolute_focus_in_complex_number_pane(&test,START_FOCUS_RADIUS);
-        }
+        (FocusPointWithScore::new(&num_array), test)
+    }).max_by(|(a, _),(b,_)| a.score().total_cmp(&b.score())).unwrap();
+
+    if best_focus.0.score() < ITER_TARGET_SCORE {
+        println!("Defaulted.");
+        ComplexNumber::new(-1.4, 0.0)
+    } else {
+        println!("Succeeded.");
+        best_focus.0.get_absolute_focus_in_complex_number_pane(&best_focus.1, START_FOCUS_RADIUS)
     }
+
 }
 
 #[macroquad::main(window_conf)]

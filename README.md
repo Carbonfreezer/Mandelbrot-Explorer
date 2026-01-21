@@ -1,4 +1,4 @@
-# Fractal Demo
+# Mandelbrot Explorer
 
 A real-time Mandelbrot set visualization with automatic focus tracking, designed as a rolling exhibition demo that runs unattended. The system continuously zooms into visually interesting regions of the fractal, creating an endlessly captivating display.
 
@@ -39,8 +39,8 @@ In both cases, you will wind up with mainly three programs:
 Clone the repository and build in release mode (important for performance!):
 
 ```bash
-git clone https://github.com/Carbonfreezer/FractalDemo.git
-cd FractalDemo
+git clone https://github.com/Carbonfreezer/Mandelbrot-Explorer.git
+cd Mandelbrot-Explorer
 cargo run --release
 ```
 

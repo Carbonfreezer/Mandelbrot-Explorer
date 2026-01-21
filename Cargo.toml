@@ -1,5 +1,5 @@
 [package]
-name = "fractal_demo"
+name = "mandelbrot-explorer"
 version = "0.1.0"
 edition = "2024"
 

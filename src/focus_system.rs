@@ -1,9 +1,10 @@
 //! The focus system searches for interesting spots based on variance.
 
-use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
+use crate::{START_FOCUS_RADIUS, WINDOW_HEIGHT, WINDOW_WIDTH};
 use itertools::Itertools;
+use macroquad::rand::gen_range;
 use rayon::iter::*;
-use crate::math::ComplexNumber;
+use crate::math::{get_iteration_field, ComplexNumber};
 
 /// The window size we use for variance calculation is this size * 2 + 1
 const WINDOW_STEP: i32 = 5;
@@ -23,7 +24,6 @@ pub struct FocusPointWithScore {
 }
 
 impl FocusPointWithScore {
-
     /// Gets a focus point (including score) from the iteration field handed over.
     pub fn new(in_field: &[u16]) -> FocusPointWithScore {
         let (best_index, score) = (0..WINDOW_WIDTH * WINDOW_HEIGHT)
@@ -81,6 +81,68 @@ impl FocusPointWithScore {
         )
     }
 
-
     pub fn score(&self) -> f32 {self.score}
+}
+
+
+/// The score we minimally want to get as a starting position.
+const ITER_MINIMUM_SCORE: f32 = 50.0;
+
+/// The amount of random samples we draw for finding a focus point.
+const NUM_OF_SAMPLES_FOR_FOCUS: u8 = 10;
+
+/// This is a helper struct generate an interesting start point for zoom.
+#[derive(Default)]
+pub struct StartPointForZoom {
+    starting_point: ComplexNumber,
+    score : f32,
+    remaining_iteration : u8,
+    precomputed_field: Option<(Vec<u16>, ComplexNumber)>,
+}
+
+
+impl StartPointForZoom {
+
+    /// Extracts the current starting point.
+    pub fn starting_point(&self) -> &ComplexNumber {&self.starting_point }
+
+    /// Generates a new sample and sees if this is better than the old one. It distributes the computation
+    /// over two phases.
+    pub fn try_improve(&mut self) {
+        if self.remaining_iteration <= 0 { return;}
+        if let Some((num_array, test)) = self.precomputed_field.as_ref() {
+            self.remaining_iteration -= 1;
+            let focus = FocusPointWithScore::new(num_array);
+            if focus.score() > self.score {
+                self.score = focus.score();
+                self.starting_point = focus.get_absolute_focus_in_complex_number_pane(&test, START_FOCUS_RADIUS);
+            }
+            self.precomputed_field = None;
+        } else {
+            let test = ComplexNumber::new(gen_range(-2.0, 1.0), gen_range(-1.0, 1.0));
+            let num_array = get_iteration_field(&test, START_FOCUS_RADIUS);
+            self.precomputed_field = Some((num_array, test));
+        }
+    }
+
+    /// Resets the iteration scheme to generate a new point of interest. We generate a reasonable
+    /// starting point upfront that we do not run into Nirvana, if we do not find one during iteration.
+    pub fn reset_iteration(&mut self) {
+        self.remaining_iteration = NUM_OF_SAMPLES_FOR_FOCUS;
+        self.score = ITER_MINIMUM_SCORE;
+        self.starting_point = ComplexNumber::new(gen_range(-2.0, -1.0), gen_range(-0.1, 0.1));
+        self.precomputed_field = None;
+    }
+
+    /// Generates a start estimate by running the loop itself. This should only be done at the beginning, as it does not distribute the load
+    /// over several frames.
+    pub fn prepare_start() -> StartPointForZoom {
+        let mut result = StartPointForZoom::default();
+        result.reset_iteration();
+
+        for _ in 0..NUM_OF_SAMPLES_FOR_FOCUS * 2 {
+            result.try_improve();
+        }
+        result
+    }
 }

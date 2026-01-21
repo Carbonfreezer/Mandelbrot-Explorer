@@ -4,22 +4,19 @@ mod color_generation;
 mod focus_system;
 mod math;
 
+use std::default::Default;
 use crate::color_generation::generate_colors;
-use crate::focus_system::{FocusPointWithScore};
+use crate::focus_system::{FocusPointWithScore, StartPointForZoom};
 use crate::math::{ComplexNumber, get_iteration_field};
 use macroquad::prelude::*;
-use macroquad::rand::{gen_range, srand};
+use macroquad::rand::{ srand};
 
 /// Width of the window in stand-alone mode.
 const WINDOW_WIDTH: i32 = 1280;
 /// Height of the window in stand-alone mode.
 const WINDOW_HEIGHT: i32 = 720;
 
-/// The score we minimally want to get as a starting position.
-const ITER_MINIMUM_SCORE: f32 = 50.0;
 
-/// The amount of random samples we draw for finding a focus point.
-const NUM_OF_SAMPLES_FOR_FOCUS: u8 = 6;
 
 /// The radius at which we start using the autofocus.
 const START_FOCUS_RADIUS: f64 = 0.05;
@@ -68,24 +65,6 @@ fn window_conf() -> Conf {
     }
 }
 
-/// Finds a suitable random starting position with good variance score.
-fn find_interesting_start() -> ComplexNumber {
-
-    // We do not parallelize here, because get_iteration_field and focus point with score is already parallelized.
-    let best_focus = (0..NUM_OF_SAMPLES_FOR_FOCUS).into_iter().map(|_| {
-        let test = ComplexNumber::new(gen_range(-2.0, 1.0), gen_range(-1.0, 1.0));
-        let num_array = get_iteration_field(&test, START_FOCUS_RADIUS);
-        (FocusPointWithScore::new(&num_array), test)
-    }).max_by(|(a, _),(b,_)| a.score().total_cmp(&b.score())).unwrap();
-
-    if best_focus.0.score() < ITER_MINIMUM_SCORE {
-        ComplexNumber::new(gen_range(-2.0, -1.0), gen_range(-0.1, 0.1))
-    } else {
-        best_focus.0.get_absolute_focus_in_complex_number_pane(&best_focus.1, START_FOCUS_RADIUS)
-    }
-
-}
-
 #[macroquad::main(window_conf)]
 async fn main() {
     srand(miniquad::date::now() as _);
@@ -93,19 +72,17 @@ async fn main() {
     let mut center = ComplexNumber::new(-0.5, 0.0);
     let mut radius = START_RADIUS;
     let mut velocity = (0.0, 0.0);
-    let mut next_center =  find_interesting_start();
+    let mut best_start_candidate = StartPointForZoom::prepare_start();
     let mut zoom_state = ZoomState::Panning;
 
     let mut image = Image::gen_image_color(WINDOW_WIDTH as u16, WINDOW_HEIGHT as u16, BLANK);
     let texture = Texture2D::from_image(&image);
 
-    let mut skip_frame = false;
 
     loop {
         if is_key_pressed(KeyCode::Escape) { break; }
 
-        let delta_time = if skip_frame{0.0} else {get_frame_time() as f64};
-        skip_frame = false;
+        let delta_time = get_frame_time() as f64;
         let num_array = get_iteration_field(&center, radius);
 
         // State machine logic
@@ -128,13 +105,14 @@ async fn main() {
                 // Check if we need to transition out
                 if radius < 1e-13  {
                     velocity = (0.0, 0.0);
-                    next_center = find_interesting_start();
-                    skip_frame = true;
+                    // In zooming out we search our new point.
+                    best_start_candidate.reset_iteration();
                     zoom_state = ZoomState::ZoomingOut
                 }
                 radius *= RADIUS_SCALING.powf(delta_time);
             }
             ZoomState::ZoomingOut  => {
+                best_start_candidate.try_improve();
                 radius *= RADIUS_SCALING.powf(-delta_time * ZOOM_OUT_SPEED);
                 // Check if we've reached START_RADIUS
                 if radius >= START_RADIUS {
@@ -144,11 +122,11 @@ async fn main() {
             }
             ZoomState::Panning  => {
                 // Smooth damp center towards next_center
-                center.smooth_damp_to(&next_center, &mut velocity, PAN_SMOOTH_TIME, delta_time);
+                center.smooth_damp_to(&best_start_candidate.starting_point(), &mut velocity, PAN_SMOOTH_TIME, delta_time);
 
-                let dist_sq = (&center - &next_center).sq_mag();
+                let dist_sq = (&center - &best_start_candidate.starting_point()).sq_mag();
                 if dist_sq < PAN_COMPLETE_THRESHOLD * PAN_COMPLETE_THRESHOLD {
-                    center = next_center.clone();
+                    center = best_start_candidate.starting_point().clone();
                     zoom_state = ZoomState::StartZooming;
                 }
             }

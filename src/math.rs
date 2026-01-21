@@ -103,14 +103,14 @@ pub fn get_iteration_field(center: &ComplexNumber, extension: f64) -> Vec<u16> {
             let x_pos = x % WINDOW_WIDTH - WINDOW_WIDTH / 2;
             let mut scan =
                 ComplexNumber::new(x_pos as f64 * step_increment, y_pos as f64 * step_increment);
-            scan += &center;
+            scan += center;
             scan.get_iteration_till_termination()
         })
         .collect::<Vec<u16>>()
 }
 
 /// Generic smooth damping function that works on a critically damped spring.
- fn smooth_damp(
+fn smooth_damp(
     current: f64,
     target: f64,
     current_velocity: &mut f64,

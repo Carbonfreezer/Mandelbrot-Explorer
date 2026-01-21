@@ -28,10 +28,10 @@ const RADIUS_SCALING: f64 = 0.5;
 const ZOOM_OUT_SPEED: f64 = 4.0;
 
 /// Smooth time for panning between positions (in seconds).
-const PAN_SMOOTH_TIME: f32 = 0.5;
+const PAN_SMOOTH_TIME: f64 = 0.5;
 
 /// The smooth time we use for the autofocus.
-const SMOOTH_TIME: f32 = 1.25;
+const FOCUS_SMOOTH_TIME: f64 = 1.25;
 
 
 /// Threshold for considering the pan complete (in complex plane units).
@@ -89,7 +89,7 @@ async fn main() {
     let texture = Texture2D::from_image(&image);
 
     loop {
-        let delta_time = get_frame_time();
+        let delta_time = get_frame_time() as f64;
         let num_array = get_iteration_field(&center, radius);
 
         // State machine logic
@@ -104,7 +104,7 @@ async fn main() {
                 );
 
                 // smoothly move center towards target_center using the existing ComplexNumber smoothing
-                center.smooth_damp_to(&target_center, &mut velocity, SMOOTH_TIME, delta_time);
+                center.smooth_damp_to(&target_center, &mut velocity, FOCUS_SMOOTH_TIME, delta_time);
 
                 // Check if we need to transition out
                 if radius < 1e-13  {
@@ -112,7 +112,7 @@ async fn main() {
                     velocity = (0.0, 0.0);
                     zoom_state = ZoomState::ZoomingOut
                 }
-                radius *= RADIUS_SCALING.powf(delta_time as f64);
+                radius *= RADIUS_SCALING.powf(delta_time);
             }
             ZoomState::ZoomingOut  => {
                 // Check if we've reached BASE_RADIUS
@@ -121,7 +121,7 @@ async fn main() {
                     zoom_state = ZoomState::Panning
                 }
                 else {
-                    radius *= RADIUS_SCALING.powf(-delta_time as f64 * ZOOM_OUT_SPEED);
+                    radius *= RADIUS_SCALING.powf(-delta_time * ZOOM_OUT_SPEED);
                 }
             }
             ZoomState::Panning  => {

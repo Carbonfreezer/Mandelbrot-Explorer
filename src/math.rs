@@ -47,22 +47,22 @@ impl ComplexNumber {
         &mut self,
         target: &ComplexNumber,
         velocity: &mut (f64, f64),
-        smooth_time: f32,
-        delta_time: f32,
+        smooth_time: f64,
+        delta_time: f64,
     ) {
         self.real = smooth_damp(
             self.real,
             target.real,
             &mut velocity.0,
-            smooth_time as f64,
-            delta_time as f64,
+            smooth_time,
+            delta_time,
         );
         self.imag = smooth_damp(
             self.imag,
             target.imag,
             &mut velocity.1,
-            smooth_time as f64,
-            delta_time as f64,
+            smooth_time,
+            delta_time,
         );
     }
 

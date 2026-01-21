@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: mandelbrot-explorer-linux-x64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: mandelbrot-explorer-windows-x64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact: mandelbrot-explorer-macos-x64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact: mandelbrot-explorer-macos-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: target/${{ matrix.target }}/release/mandelbrot-explorer*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            mandelbrot-explorer-linux-x64/*
+            mandelbrot-explorer-windows-x64/*
+            mandelbrot-explorer-macos-x64/*
+            mandelbrot-explorer-macos-arm64/*

@@ -38,7 +38,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: target/${{ matrix.target }}/release/mandelbrot-explorer*
+          path: |
+            target/${{ matrix.target }}/release/mandelbrot-explorer
+            target/${{ matrix.target }}/release/mandelbrot-explorer.exe
 
   release:
     needs: build

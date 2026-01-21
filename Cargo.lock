@@ -207,7 +207,7 @@ dependencies = [
 
 [[package]]
 name = "mandelbrot-explorer"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "itertools",
  "macroquad",

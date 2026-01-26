@@ -12,9 +12,9 @@ use macroquad::rand::srand;
 use std::default::Default;
 
 /// Width of the window in stand-alone mode.
-const WINDOW_WIDTH: i32 = 1280;
+const WINDOW_WIDTH: i32 = 1920;
 /// Height of the window in stand-alone mode.
-const WINDOW_HEIGHT: i32 = 720;
+const WINDOW_HEIGHT: i32 = 1080;
 
 /// The radius at which we start using the autofocus.
 const START_FOCUS_RADIUS: f64 = 0.05;
@@ -62,6 +62,7 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    let mut fullscreen = true;
     srand(miniquad::date::now() as _);
     show_mouse(false);
 
@@ -77,6 +78,10 @@ async fn main() {
     loop {
         if is_key_pressed(KeyCode::Escape) {
             break;
+				}
+        if is_key_pressed(KeyCode::F11) {
+            fullscreen = !fullscreen;
+            miniquad::window::set_fullscreen(fullscreen);
         }
 
         let delta_time = get_frame_time() as f64;

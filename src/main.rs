@@ -78,9 +78,10 @@ async fn main() {
     loop {
         if is_key_pressed(KeyCode::Escape) {
             break;
-				}
+        }
         if is_key_pressed(KeyCode::F11) {
             fullscreen = !fullscreen;
+            show_mouse(!fullscreen);
             miniquad::window::set_fullscreen(fullscreen);
         }
 

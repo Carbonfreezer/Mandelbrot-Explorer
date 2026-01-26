@@ -12,9 +12,9 @@ use macroquad::rand::srand;
 use std::default::Default;
 
 /// Width of the window in stand-alone mode.
-const WINDOW_WIDTH: i32 = 1920;
+const WINDOW_WIDTH: i32 = 1280;
 /// Height of the window in stand-alone mode.
-const WINDOW_HEIGHT: i32 = 1080;
+const WINDOW_HEIGHT: i32 = 720;
 
 /// The radius at which we start using the autofocus.
 const START_FOCUS_RADIUS: f64 = 0.05;

@@ -24,13 +24,13 @@ impl ComplexNumber {
     /// Does the next step on a complex number and returns true if we still need to iterate.
     /// We change ourselves.
     fn next_step(&mut self, offset: &ComplexNumber) -> bool {
-        let sq_real = self.real * self.real;
-        let sq_imag = self.imag * self.imag;
+        let sq_real = self.real.clone() * self.real.clone();
+        let sq_imag = self.imag.clone() * self.imag.clone();
 
 
         (self.real, self.imag) = (
-            Float::with_val(PRECISION, &sq_real - &sq_imag) + offset.real,
-            2.0 * self.real * self.imag + offset.imag,
+            Float::with_val(PRECISION, &sq_real - &sq_imag) + offset.real.clone(),
+            2.0 * self.real.clone() * self.imag.clone() + offset.imag.clone(),
         );
         sq_real + sq_imag < 4.0
     }
@@ -97,8 +97,8 @@ pub fn get_iteration_field(center: &ComplexNumber, extension: &Float) -> Vec<u16
             let y_pos = x / PICTURE_WIDTH - PICTURE_HEIGHT / 2;
             let x_pos = x % PICTURE_WIDTH - PICTURE_WIDTH / 2;
             let mut scan =
-                ComplexNumber::new(x_pos  * &step_increment, y_pos * &step_increment);
-            scan += *center;
+                ComplexNumber::new(Float::with_val(PRECISION,x_pos  * &step_increment), Float::with_val(PRECISION,y_pos * &step_increment));
+            scan += center.clone();
             scan.get_iteration_till_termination()
         })
         .collect::<Vec<u16>>()
@@ -113,10 +113,10 @@ fn smooth_damp(
     delta_time: &Float,
 ) -> Float {
     let omega = Float::with_val(PRECISION, 2.0) / smooth_time;
-    let exp = (-&omega * delta_time).exp();
-    let change = current - target;
+    let exp = (-omega.clone() * delta_time).exp();
+    let change = current.clone() - target.clone();
 
-    let temp = (current_velocity + &omega * &change) * delta_time;
-    *current_velocity = (*current_velocity - omega * temp) * exp;
+    let temp = (current_velocity.clone() + omega.clone() * change.clone()) * delta_time;
+    *current_velocity = (current_velocity.clone() - omega * &temp) * &exp;
     target + (change + temp) * exp
 }

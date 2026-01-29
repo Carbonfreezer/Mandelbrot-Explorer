@@ -1,7 +1,6 @@
 //! Module is responsible for mapping the iteration field to a color value. It us using a cyclicle color map here.
 
 use crate::math::MAX_ITER;
-use macroquad::color::{BLACK, Color};
 use std::sync::LazyLock;
 
 /// The amount of complete cycles we do on the hue for the complete stretch.
@@ -12,22 +11,22 @@ const COLOR_VALUE: f32 = 0.8;
 const COLOR_SATURATION: f32 = 0.8;
 
 /// The lookup table for all entries as static array.
-static COLOR_ARRAY: LazyLock<Vec<Color>> = LazyLock::new(create_all_colors);
+static COLOR_ARRAY: LazyLock<Vec<[u8; 3]>> = LazyLock::new(create_all_colors);
 
 /// Helper function to build the lookup table.
-fn create_all_colors() -> Vec<Color> {
+fn create_all_colors() -> Vec<[u8; 3]> {
     let mut vec: Vec<_> = (0..MAX_ITER)
         .map(|i| {
             let rel_val = (i as f32 * HUE_CYCLES / MAX_ITER as f32).fract();
             hsv_to_rgb_color(rel_val, COLOR_SATURATION, COLOR_VALUE)
         })
         .collect();
-    vec.push(BLACK);
+    vec.push([0, 0, 0]); // Black
     vec
 }
 
 /// Converts hsv to rgb color.
-fn hsv_to_rgb_color(h: f32, s: f32, v: f32) -> Color {
+fn hsv_to_rgb_color(h: f32, s: f32, v: f32) -> [u8; 3] {
     let mut r = 0.0;
     let mut g = 0.0;
     let mut b = 0.0;
@@ -77,10 +76,13 @@ fn hsv_to_rgb_color(h: f32, s: f32, v: f32) -> Color {
             _ => {}
         }
     }
-    Color::new(r, g, b, 1.0)
+    [(r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8]
 }
 
 /// Takes a field with iterations and converts it into a color array.
-pub fn generate_colors(in_field: &[u16]) -> Vec<Color> {
-    in_field.iter().map(|i| COLOR_ARRAY[*i as usize]).collect()
+pub fn generate_colors(in_field: &[u16]) -> Vec<u8> {
+    in_field
+        .iter()
+        .flat_map(|i| COLOR_ARRAY[*i as usize])
+        .collect()
 }

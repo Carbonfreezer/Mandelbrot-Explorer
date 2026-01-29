@@ -1,6 +1,6 @@
 //! Contains the real mandelbrot caclulations.
 
-use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
+use crate::{PICTURE_HEIGHT, PICTURE_WIDTH};
 use rayon::prelude::*;
 use std::ops::{AddAssign, Sub};
 
@@ -65,11 +65,6 @@ impl ComplexNumber {
             delta_time,
         );
     }
-
-    /// Gets the squared magnitude of the complex number.
-    pub fn sq_mag(&self) -> f64 {
-        self.real * self.real + self.imag * self.imag
-    }
 }
 
 impl AddAssign<ComplexNumber> for ComplexNumber {
@@ -93,14 +88,14 @@ impl Sub for ComplexNumber {
 /// Generates an iteration field for the given complex number as a center and an extension given as a radius.
 /// The window half height corresponds to the radius.
 pub fn get_iteration_field(center: ComplexNumber, extension: f64) -> Vec<u16> {
-    let window_height = WINDOW_HEIGHT as f64;
+    let window_height = PICTURE_HEIGHT as f64;
     let step_increment = extension / (window_height * 0.5);
 
-    (0..WINDOW_WIDTH * WINDOW_HEIGHT)
+    (0..PICTURE_WIDTH * PICTURE_HEIGHT)
         .into_par_iter()
         .map(|x| {
-            let y_pos = x / WINDOW_WIDTH - WINDOW_HEIGHT / 2;
-            let x_pos = x % WINDOW_WIDTH - WINDOW_WIDTH / 2;
+            let y_pos = x / PICTURE_WIDTH - PICTURE_HEIGHT / 2;
+            let x_pos = x % PICTURE_WIDTH - PICTURE_WIDTH / 2;
             let mut scan =
                 ComplexNumber::new(x_pos as f64 * step_increment, y_pos as f64 * step_increment);
             scan += center;

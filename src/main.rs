@@ -17,9 +17,6 @@ const PICTURE_WIDTH: i32 = 1920;
 /// Height of the window in stand-alone mode.
 const PICTURE_HEIGHT: i32 = 1080;
 
-/// The amount of scaling we want to have per step.
-static START_RADIUS_SCALING_PER_STEP: LazyLock<f64> =
-    LazyLock::new(|| (0.5_f32).powf(DELTA_TIME as f32) as f64);
 
 /// The scaling factor we have for in scaling per second.
 const START_RADIUS: f64 = 0.05;
@@ -34,6 +31,7 @@ const FPS: f64 = 50.0;
 const DELTA_TIME: f64 = 1.0 / FPS;
 
 fn main() {
+    let start_radius_scaling_per_step =  (0.5_f32).powf(DELTA_TIME as f32) as f64;
     let mut center = ComplexNumber::new(-0.75, 0.11);
     let mut radius = START_RADIUS;
     let mut velocity = (0.0, 0.0);
@@ -57,7 +55,7 @@ fn main() {
         if radius < 1e-13 {
             break;
         }
-        radius *= *START_RADIUS_SCALING_PER_STEP;
+        radius *= start_radius_scaling_per_step;
         frame_counter += 1;
     }
 }

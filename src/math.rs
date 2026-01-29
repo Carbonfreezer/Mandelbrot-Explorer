@@ -2,8 +2,8 @@
 
 use crate::{PICTURE_HEIGHT, PICTURE_WIDTH, PRECISION};
 use rayon::prelude::*;
-use std::ops::{AddAssign, Sub};
 use rug::Float;
+use std::ops::{AddAssign, Sub};
 
 /// The maximum amount of iterations we want to do for a complex number in Mandelbrot to check for divergence.
 pub const MAX_ITER: u16 = 100;
@@ -24,13 +24,12 @@ impl ComplexNumber {
     /// Does the next step on a complex number and returns true if we still need to iterate.
     /// We change ourselves.
     fn next_step(&mut self, offset: &ComplexNumber) -> bool {
-        let sq_real = self.real.clone() * self.real.clone();
-        let sq_imag = self.imag.clone() * self.imag.clone();
-
+        let sq_real = Float::with_val(PRECISION, &self.real * &self.real);
+        let sq_imag = Float::with_val(PRECISION, &self.imag * &self.imag);
 
         (self.real, self.imag) = (
             Float::with_val(PRECISION, &sq_real - &sq_imag) + offset.real.clone(),
-            2.0 * self.real.clone() * self.imag.clone() + offset.imag.clone(),
+            2.0 * Float::with_val(PRECISION, &self.real * &self.imag + &offset.imag),
         );
         sq_real + sq_imag < 4.0
     }
@@ -38,8 +37,11 @@ impl ComplexNumber {
     /// Gets the amount of iterations we need till divergence.
     pub fn get_iteration_till_termination(&self) -> u16 {
         let mut iter = 0;
-        let mut scan = ComplexNumber::new (Float::with_val(PRECISION, 0.0), Float::with_val(PRECISION, 0.0) );
-        while iter < MAX_ITER && scan.next_step(&self) {
+        let mut scan = ComplexNumber::new(
+            Float::new(PRECISION),
+            Float::new(PRECISION),
+        );
+        while iter < MAX_ITER && scan.next_step(self) {
             iter += 1;
         }
         iter
@@ -96,8 +98,10 @@ pub fn get_iteration_field(center: &ComplexNumber, extension: &Float) -> Vec<u16
         .map(|x| {
             let y_pos = x / PICTURE_WIDTH - PICTURE_HEIGHT / 2;
             let x_pos = x % PICTURE_WIDTH - PICTURE_WIDTH / 2;
-            let mut scan =
-                ComplexNumber::new(Float::with_val(PRECISION,x_pos  * &step_increment), Float::with_val(PRECISION,y_pos * &step_increment));
+            let mut scan = ComplexNumber::new(
+                Float::with_val(PRECISION, x_pos * &step_increment),
+                Float::with_val(PRECISION, y_pos * &step_increment),
+            );
             scan += center.clone();
             scan.get_iteration_till_termination()
         })
@@ -114,9 +118,10 @@ fn smooth_damp(
 ) -> Float {
     let omega = Float::with_val(PRECISION, 2.0) / smooth_time;
     let exp = (-omega.clone() * delta_time).exp();
-    let change = current.clone() - target.clone();
+    let change = Float::with_val(PRECISION, current - target);
 
-    let temp = (current_velocity.clone() + omega.clone() * change.clone()) * delta_time;
-    *current_velocity = (current_velocity.clone() - omega * &temp) * &exp;
+    let cloned_velocity = current_velocity.clone();
+    let temp = (&cloned_velocity + Float::with_val(PRECISION, &omega * &change)) * delta_time;
+    *current_velocity = (cloned_velocity - omega * &temp) * &exp;
     target + (change + temp) * exp
 }

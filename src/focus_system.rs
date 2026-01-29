@@ -74,7 +74,7 @@ impl FocusPoint {
         center: &ComplexNumber,
         radius: &Float,
     ) -> ComplexNumber {
-        let step = Float::with_val(PRECISION, radius / (PICTURE_HEIGHT as f32  * 0.5));
+        let step = Float::with_val(PRECISION, radius / (PICTURE_HEIGHT as f32 * 0.5));
         ComplexNumber::new(
             center.real.clone() + &step * Float::with_val(PRECISION, self.x_pos),
             center.imag.clone() + &step * Float::with_val(PRECISION, self.y_pos),

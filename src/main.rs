@@ -8,15 +8,14 @@ use crate::color_generation::generate_colors;
 use crate::focus_system::FocusPoint;
 use crate::math::{ComplexNumber, get_iteration_field};
 use png::Encoder;
+use rug::Float;
 use std::fs::File;
 use std::io::BufWriter;
-use rug::Float;
 
 /// Width of the window in stand-alone mode.
 const PICTURE_WIDTH: i32 = 1920;
 /// Height of the window in stand-alone mode.
 const PICTURE_HEIGHT: i32 = 1080;
-
 
 /// The scaling factor we have for in scaling per second.
 const START_RADIUS: f64 = 0.05;
@@ -31,13 +30,19 @@ const FPS: f64 = 50.0;
 const DELTA_TIME: f64 = 1.0 / FPS;
 
 /// The precision for floating.
-const PRECISION : u32 = 128;
+const PRECISION: u32 = 128;
 
 fn main() {
-    let start_radius_scaling_per_step =  0.5_f64.powf(DELTA_TIME);
-    let mut center = ComplexNumber::new(Float::with_val(PRECISION, -0.75) , Float::with_val(PRECISION, 0.11));
+    let start_radius_scaling_per_step = 0.5_f64.powf(DELTA_TIME);
+    let mut center = ComplexNumber::new(
+        Float::with_val(PRECISION, -0.75),
+        Float::with_val(PRECISION, 0.11),
+    );
     let mut radius = Float::with_val(PRECISION, START_RADIUS);
-    let mut velocity = (Float::with_val(PRECISION, 0.0), Float::with_val(PRECISION, 0.0));
+    let mut velocity = (
+        Float::with_val(PRECISION, 0.0),
+        Float::with_val(PRECISION, 0.0),
+    );
     let focus_smooth_time = Float::with_val(PRECISION, FOCUS_SMOOTH_TIME);
     let delta_time = Float::with_val(PRECISION, DELTA_TIME);
     let min_radius = 10_f64.powf(-((PRECISION - 10) as f64 * 0.3));
@@ -52,7 +57,12 @@ fn main() {
         let target_center = focus.get_absolute_focus_in_complex_number_pane(&center, &radius);
 
         // smoothly move center towards target_center using the existing ComplexNumber smoothing
-        center.smooth_damp_to(&target_center, &mut velocity, &focus_smooth_time, &delta_time);
+        center.smooth_damp_to(
+            &target_center,
+            &mut velocity,
+            &focus_smooth_time,
+            &delta_time,
+        );
 
         let color_array = generate_colors(&num_array);
         save_image(&color_array, frame_counter);

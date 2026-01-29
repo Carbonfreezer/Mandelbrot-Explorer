@@ -31,7 +31,7 @@ const FPS: f64 = 50.0;
 const DELTA_TIME: f64 = 1.0 / FPS;
 
 /// The precision for floating.
-const PRECISION : u32 = 512;
+const PRECISION : u32 = 128;
 
 fn main() {
     let start_radius_scaling_per_step =  0.5_f64.powf(DELTA_TIME);

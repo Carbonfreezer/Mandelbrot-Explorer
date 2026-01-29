@@ -63,7 +63,7 @@ fn main() {
 }
 
 fn save_image(color_vec: &[u8], serial_number: u32) {
-    let path = format!("Image_{:06}", serial_number);
+    let path = format!("Image_{:06}.png", serial_number);
     let file = File::create(path).expect("Failed to create image file");
     let writer = BufWriter::new(file);
 

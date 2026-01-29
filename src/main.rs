@@ -31,7 +31,7 @@ const FPS: f64 = 50.0;
 const DELTA_TIME: f64 = 1.0 / FPS;
 
 fn main() {
-    let start_radius_scaling_per_step =  (0.5_f32).powf(DELTA_TIME as f32) as f64;
+    let start_radius_scaling_per_step =  0.5_f64.powf(DELTA_TIME);
     let mut center = ComplexNumber::new(-0.75, 0.11);
     let mut radius = START_RADIUS;
     let mut velocity = (0.0, 0.0);

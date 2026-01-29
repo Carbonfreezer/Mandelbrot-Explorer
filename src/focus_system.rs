@@ -1,9 +1,10 @@
 //! The focus system searches for interesting spots based on variance.
 
 use crate::math::ComplexNumber;
-use crate::{PICTURE_HEIGHT, PICTURE_WIDTH};
+use crate::{PICTURE_HEIGHT, PICTURE_WIDTH, PRECISION};
 use itertools::Itertools;
 use rayon::iter::*;
+use rug::Float;
 
 /// The window size we use for variance calculation is this size * 2 + 1
 const WINDOW_STEP: i32 = 5;
@@ -70,13 +71,13 @@ impl FocusPoint {
     /// Given a screen center in the complex number pane and an applied radius the focus gets converted into a target position in the complex number pane.
     pub fn get_absolute_focus_in_complex_number_pane(
         &self,
-        center: ComplexNumber,
-        radius: f64,
+        center: &ComplexNumber,
+        radius: &Float,
     ) -> ComplexNumber {
-        let step = radius / (PICTURE_HEIGHT as f64 * 0.5);
+        let step = Float::with_val(PRECISION, radius / (PICTURE_HEIGHT as f32  * 0.5));
         ComplexNumber::new(
-            center.real + self.x_pos as f64 * step,
-            center.imag + self.y_pos as f64 * step,
+            center.real + &step * Float::with_val(PRECISION, self.x_pos),
+            center.imag + &step * Float::with_val(PRECISION, self.y_pos),
         )
     }
 }

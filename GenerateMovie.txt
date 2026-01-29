@@ -1,1 +1,3 @@
 ffmpeg -framerate 50 -i Image_%06d.png -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p fractal.mp4
+
+nohup long-running-command &

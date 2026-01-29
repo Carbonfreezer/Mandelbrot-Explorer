@@ -10,7 +10,7 @@ use crate::math::{ComplexNumber, get_iteration_field};
 use png::Encoder;
 use std::fs::File;
 use std::io::BufWriter;
-use std::sync::LazyLock;
+use rug::Float;
 
 /// Width of the window in stand-alone mode.
 const PICTURE_WIDTH: i32 = 1920;
@@ -30,29 +30,35 @@ const FPS: f64 = 50.0;
 /// The delta time we have for every frame.
 const DELTA_TIME: f64 = 1.0 / FPS;
 
+/// The precision for floating.
+const PRECISION : u32 = 512;
+
 fn main() {
     let start_radius_scaling_per_step =  0.5_f64.powf(DELTA_TIME);
-    let mut center = ComplexNumber::new(-0.75, 0.11);
-    let mut radius = START_RADIUS;
-    let mut velocity = (0.0, 0.0);
+    let mut center = ComplexNumber::new(Float::with_val(PRECISION, -0.75) , Float::with_val(PRECISION, 0.11));
+    let mut radius = Float::with_val(PRECISION, START_RADIUS);
+    let mut velocity = (Float::with_val(PRECISION, 0.0), Float::with_val(PRECISION, 0.0));
+    let focus_smooth_time = Float::with_val(PRECISION, FOCUS_SMOOTH_TIME);
+    let delta_time = Float::with_val(PRECISION, DELTA_TIME);
+    let min_radius = 10_f64.powf(-((PRECISION - 10) as f64 * 0.3));
 
     let mut frame_counter: u32 = 0;
 
     loop {
-        let num_array = get_iteration_field(center, radius);
+        let num_array = get_iteration_field(&center, &radius);
 
         // compute the target center we want to approach
         let focus = FocusPoint::new(&num_array);
-        let target_center = focus.get_absolute_focus_in_complex_number_pane(center, radius);
+        let target_center = focus.get_absolute_focus_in_complex_number_pane(&center, &radius);
 
         // smoothly move center towards target_center using the existing ComplexNumber smoothing
-        center.smooth_damp_to(target_center, &mut velocity, FOCUS_SMOOTH_TIME, DELTA_TIME);
+        center.smooth_damp_to(&target_center, &mut velocity, &focus_smooth_time, &delta_time);
 
         let color_array = generate_colors(&num_array);
         save_image(&color_array, frame_counter);
 
         // Check if we reach the limit of precision. Later on we have to switch the precision level here.
-        if radius < 1e-13 {
+        if radius < min_radius {
             break;
         }
         radius *= start_radius_scaling_per_step;

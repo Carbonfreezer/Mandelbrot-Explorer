@@ -4,8 +4,10 @@
 // precision.rs
 use std::sync::atomic::{AtomicU32};
 
+/// Contains the current calculation precision in bits as an atomic to be efficiently modifiable.
 pub static DYNAMIC_PRECISION: AtomicU32 = AtomicU32::new(32);
 
+/// Gets the current floating point calculation in bits.
 #[macro_export]
 macro_rules! precision {
     () => {
@@ -13,6 +15,7 @@ macro_rules! precision {
     };
 }
 
+/// Sets the current floating point calculation in bits.
 #[macro_export]
 macro_rules! float {
     ($val:expr) => {

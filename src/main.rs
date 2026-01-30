@@ -5,6 +5,11 @@
 //! sudo apt install libgmp-dev libmpfr-dev
 //! sudo apt install build-essential m4
 //! ```
+//!
+//! To accumulate all final images into one video use:
+//!```bash
+//! ffmpeg -framerate 50 -i Image_%06d.png -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p fractal.mp4
+// ```
 
 mod color_generation;
 mod focus_system;
@@ -87,9 +92,7 @@ impl PrecisionChangingData {
             return true;
         }
 
-        {
-            DYNAMIC_PRECISION.store(current_precision + PRECISION_INCREMENT, Ordering::Relaxed);
-        }
+        DYNAMIC_PRECISION.store(current_precision + PRECISION_INCREMENT, Ordering::Relaxed);
         self.center = ComplexNumber::new(float!(&self.center.real), float!(&self.center.imag));
         self.velocity = (float!(&self.velocity.0), float!(&self.velocity.1));
         self.radius = float!(&self.radius);
@@ -135,10 +138,7 @@ fn main() {
 }
 
 /// Generates an image file to be saved to disc from the serial number.
-/// All image files can then be accumulated into one video with
-/// ```bash
-/// ffmpeg -framerate 50 -i Image_%06d.png -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p fractal.mp4
-/// ```
+/// All image files can then be accumulated into one video.
 fn save_image(color_vec: &[u8], serial_number: u32) {
     let path = format!("Image_{:06}.png", serial_number);
     let file = File::create(path).expect("Failed to create image file");

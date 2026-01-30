@@ -1,6 +1,6 @@
 //! Contains the real mandelbrot caclulations.
 
-use crate::{PICTURE_HEIGHT, PICTURE_WIDTH, PRECISION};
+use crate::{PICTURE_HEIGHT, PICTURE_WIDTH, float};
 use rayon::prelude::*;
 use rug::Float;
 use std::ops::{AddAssign, Sub};
@@ -24,12 +24,12 @@ impl ComplexNumber {
     /// Does the next step on a complex number and returns true if we still need to iterate.
     /// We change ourselves.
     fn next_step(&mut self, offset: &ComplexNumber) -> bool {
-        let sq_real = Float::with_val(PRECISION, &self.real * &self.real);
-        let sq_imag = Float::with_val(PRECISION, &self.imag * &self.imag);
+        let sq_real = float!(&self.real * &self.real);
+        let sq_imag = float!(&self.imag * &self.imag);
 
         (self.real, self.imag) = (
-            Float::with_val(PRECISION, &sq_real - &sq_imag) + offset.real.clone(),
-            2.0 * Float::with_val(PRECISION, &self.real * &self.imag + &offset.imag),
+            float!(&sq_real - &sq_imag) + offset.real.clone(),
+            2.0 * float!(&self.real * &self.imag + &offset.imag),
         );
         sq_real + sq_imag < 4.0
     }
@@ -37,10 +37,7 @@ impl ComplexNumber {
     /// Gets the amount of iterations we need till divergence.
     pub fn get_iteration_till_termination(&self) -> u16 {
         let mut iter = 0;
-        let mut scan = ComplexNumber::new(
-            Float::new(PRECISION),
-            Float::new(PRECISION),
-        );
+        let mut scan = ComplexNumber::new(float!(0.0), float!(0.0));
         while iter < MAX_ITER && scan.next_step(self) {
             iter += 1;
         }
@@ -90,7 +87,7 @@ impl Sub for ComplexNumber {
 /// Generates an iteration field for the given complex number as a center and an extension given as a radius.
 /// The window half height corresponds to the radius.
 pub fn get_iteration_field(center: &ComplexNumber, extension: &Float) -> Vec<u16> {
-    let window_height = Float::with_val(PRECISION, PICTURE_HEIGHT);
+    let window_height = float!(PICTURE_HEIGHT);
     let step_increment = extension / (window_height * 0.5);
 
     (0..PICTURE_WIDTH * PICTURE_HEIGHT)
@@ -99,8 +96,8 @@ pub fn get_iteration_field(center: &ComplexNumber, extension: &Float) -> Vec<u16
             let y_pos = x / PICTURE_WIDTH - PICTURE_HEIGHT / 2;
             let x_pos = x % PICTURE_WIDTH - PICTURE_WIDTH / 2;
             let mut scan = ComplexNumber::new(
-                Float::with_val(PRECISION, x_pos * &step_increment),
-                Float::with_val(PRECISION, y_pos * &step_increment),
+                float!(x_pos * &step_increment),
+                float!(y_pos * &step_increment),
             );
             scan += center.clone();
             scan.get_iteration_till_termination()
@@ -116,12 +113,12 @@ fn smooth_damp(
     smooth_time: &Float,
     delta_time: &Float,
 ) -> Float {
-    let omega = Float::with_val(PRECISION, 2.0) / smooth_time;
+    let omega = float!(2.0) / smooth_time;
     let exp = (-omega.clone() * delta_time).exp();
-    let change = Float::with_val(PRECISION, current - target);
+    let change = float!(current - target);
 
     let cloned_velocity = current_velocity.clone();
-    let temp = (&cloned_velocity + Float::with_val(PRECISION, &omega * &change)) * delta_time;
+    let temp = (&cloned_velocity + float!(&omega * &change)) * delta_time;
     *current_velocity = (cloned_velocity - omega * &temp) * &exp;
     target + (change + temp) * exp
 }

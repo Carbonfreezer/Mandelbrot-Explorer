@@ -1,7 +1,7 @@
 //! The focus system searches for interesting spots based on variance.
 
 use crate::math::ComplexNumber;
-use crate::{PICTURE_HEIGHT, PICTURE_WIDTH, PRECISION};
+use crate::{PICTURE_HEIGHT, PICTURE_WIDTH, float};
 use itertools::Itertools;
 use rayon::iter::*;
 use rug::Float;
@@ -74,10 +74,10 @@ impl FocusPoint {
         center: &ComplexNumber,
         radius: &Float,
     ) -> ComplexNumber {
-        let step = Float::with_val(PRECISION, radius / (PICTURE_HEIGHT as f32 * 0.5));
+        let step = float!(radius / (PICTURE_HEIGHT as f32 * 0.5));
         ComplexNumber::new(
-            center.real.clone() + &step * Float::with_val(PRECISION, self.x_pos),
-            center.imag.clone() + &step * Float::with_val(PRECISION, self.y_pos),
+            center.real.clone() + &step * float!(self.x_pos),
+            center.imag.clone() + &step * float!(self.y_pos),
         )
     }
 }

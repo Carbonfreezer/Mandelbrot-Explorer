@@ -7,7 +7,7 @@ use rayon::iter::*;
 use rug::Float;
 
 /// The window size we use for variance calculation is this size * 2 + 1
-const WINDOW_STEP: i32 = 5;
+const WINDOW_STEP: i32 = 10;
 /// The amount of samples we generate in the window.
 const SAMPLE_SIZE: f32 = ((2 * WINDOW_STEP + 1) * (2 * WINDOW_STEP + 1)) as f32;
 /// The maximum distance a pixel can be away from the center squared.

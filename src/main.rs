@@ -43,7 +43,7 @@ const FPS: f64 = 50.0;
 const DELTA_TIME: f64 = 1.0 / FPS;
 
 /// The maximum number of precision we use.
-const MAX_PRECISION: u32 = 64;
+const MAX_PRECISION: u32 = 1024;
 
 /// The delta we use for a precision increment in bits.
 const PRECISION_INCREMENT: u32 = 8;

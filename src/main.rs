@@ -19,6 +19,7 @@ use png::Encoder;
 use rug::Float;
 use std::fs::File;
 use std::io::BufWriter;
+use std::sync::atomic::Ordering;
 
 /// Width of the window in stand-alone mode.
 const PICTURE_WIDTH: i32 = 1920;
@@ -73,9 +74,9 @@ impl PrecisionChangingData {
     }
 
     /// Checks if we need to upgrade the precision and eventually does so, all relevant data will get upgraded to the new precision.
-    /// 
+    ///
     /// #unsafe
-    /// We manipulate the global variable DYNAMIC_PRECISION here, assuming that all threads are not accessing here. 
+    /// We manipulate the global variable DYNAMIC_PRECISION here, assuming that all threads are not accessing here.
     pub fn check_upgrade_precision(&mut self) -> bool {
         if self.radius >= self.min_radius {
             return false;
@@ -87,9 +88,7 @@ impl PrecisionChangingData {
         }
 
         {
-            unsafe {
-                DYNAMIC_PRECISION = current_precision + PRECISION_INCREMENT;
-            }
+            DYNAMIC_PRECISION.store(current_precision + PRECISION_INCREMENT, Ordering::Relaxed);
         }
         self.center = ComplexNumber::new(float!(&self.center.real), float!(&self.center.imag));
         self.velocity = (float!(&self.velocity.0), float!(&self.velocity.1));

@@ -1,23 +1,17 @@
 //! Here are some macros that deal with the changing calculation precision along the mandelbrot system.
 
 
-pub static mut DYNAMIC_PRECISION: u32 = 32;
+// precision.rs
+use std::sync::atomic::{AtomicU32};
 
-
+pub static DYNAMIC_PRECISION: AtomicU32 = AtomicU32::new(32);
 
 #[macro_export]
 macro_rules! precision {
     () => {
-        {
-            let safe_copy;
-            unsafe {
-                safe_copy = $crate::precision::DYNAMIC_PRECISION;
-            }
-            safe_copy
-        }
+        $crate::precision::DYNAMIC_PRECISION.load(std::sync::atomic::Ordering::Relaxed)
     };
 }
-
 
 #[macro_export]
 macro_rules! float {

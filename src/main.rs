@@ -73,6 +73,9 @@ impl PrecisionChangingData {
     }
 
     /// Checks if we need to upgrade the precision and eventually does so, all relevant data will get upgraded to the new precision.
+    /// 
+    /// #unsafe
+    /// We manipulate the global variable DYNAMIC_PRECISION here, assuming that all threads are not accessing here. 
     pub fn check_upgrade_precision(&mut self) -> bool {
         if self.radius >= self.min_radius {
             return false;
@@ -84,7 +87,9 @@ impl PrecisionChangingData {
         }
 
         {
-            *DYNAMIC_PRECISION.write().unwrap() = current_precision + PRECISION_INCREMENT;
+            unsafe {
+                DYNAMIC_PRECISION = current_precision + PRECISION_INCREMENT;
+            }
         }
         self.center = ComplexNumber::new(float!(&self.center.real), float!(&self.center.imag));
         self.velocity = (float!(&self.velocity.0), float!(&self.velocity.1));

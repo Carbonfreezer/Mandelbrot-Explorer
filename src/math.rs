@@ -28,8 +28,8 @@ impl ComplexNumber {
         let sq_imag = float!(&self.imag * &self.imag);
 
         (self.real, self.imag) = (
-            float!(&sq_real - &sq_imag) + offset.real.clone(),
-            2.0 * float!(&self.real * &self.imag + &offset.imag),
+            float!(&sq_real - &sq_imag) + &offset.real,
+            2.0 * float!(&self.real * &self.imag) + &offset.imag,
         );
         sq_real + sq_imag < 4.0
     }

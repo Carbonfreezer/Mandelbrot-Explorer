@@ -13,17 +13,16 @@
 
 mod color_generation;
 mod focus_system;
+mod image_saver;
 mod math;
 mod precision;
 
 use crate::color_generation::generate_colors;
 use crate::focus_system::FocusPoint;
+use crate::image_saver::ImageSaver;
 use crate::math::{ComplexNumber, get_iteration_field};
 use crate::precision::DYNAMIC_PRECISION;
-use png::Encoder;
 use rug::Float;
-use std::fs::File;
-use std::io::BufWriter;
 use std::sync::atomic::Ordering;
 
 /// Width of the window in stand-alone mode.
@@ -108,6 +107,7 @@ fn main() {
     let start_radius_scaling_per_step = 0.5_f64.powf(DELTA_TIME);
     let mut data = PrecisionChangingData::new();
     let mut frame_counter: u32 = 0;
+    let image_saver = ImageSaver::default();
 
     loop {
         let num_array = get_iteration_field(&data.center, &data.radius);
@@ -126,7 +126,7 @@ fn main() {
         );
 
         let color_array = generate_colors(&num_array);
-        save_image(&color_array, frame_counter);
+        image_saver.save_image(color_array, frame_counter);
 
         // Check if we reach the limit of precision. Later on we have to switch the precision level here.
         if data.check_upgrade_precision() {
@@ -135,23 +135,4 @@ fn main() {
         data.radius *= start_radius_scaling_per_step;
         frame_counter += 1;
     }
-}
-
-/// Generates an image file to be saved to disc from the serial number.
-/// All image files can then be accumulated into one video.
-fn save_image(color_vec: &[u8], serial_number: u32) {
-    let path = format!("Image_{:06}.png", serial_number);
-    let file = File::create(path).expect("Failed to create image file");
-    let writer = BufWriter::new(file);
-
-    let mut encoder = Encoder::new(writer, PICTURE_WIDTH as u32, PICTURE_HEIGHT as u32);
-    encoder.set_color(png::ColorType::Rgb);
-    encoder.set_depth(png::BitDepth::Eight);
-
-    let mut writer = encoder
-        .write_header()
-        .expect("Failed to write image header");
-    writer
-        .write_image_data(color_vec)
-        .expect("Failed to write image data");
 }

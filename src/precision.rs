@@ -1,8 +1,7 @@
 //! Here are some macros that deal with the changing calculation precision along the mandelbrot system.
 
-
 // precision.rs
-use std::sync::atomic::{AtomicU32};
+use std::sync::atomic::AtomicU32;
 
 /// Contains the current calculation precision in bits as an atomic to be efficiently modifiable.
 pub static DYNAMIC_PRECISION: AtomicU32 = AtomicU32::new(32);

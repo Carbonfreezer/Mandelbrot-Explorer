@@ -6,7 +6,7 @@ use rug::Float;
 use std::ops::{AddAssign, Sub};
 
 /// The maximum amount of iterations we want to do for a complex number in Mandelbrot to check for divergence.
-pub const MAX_ITER: u16 = 300;
+pub const MAX_ITER: u16 = 1000;
 
 /// Complex number used in Mandelbrot in double precision.
 #[derive(Debug, Clone)]

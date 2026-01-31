@@ -53,7 +53,7 @@ impl FocusPoint {
                 // Get center bias.
                 let dx = (x - PICTURE_WIDTH / 2) as f32;
                 let dy = (y - PICTURE_HEIGHT / 2) as f32;
-                let center_bias = 1.0 - 0.5 * (dx * dx + dy * dy) / MAX_DIST_SQ;
+                let center_bias = 1.0 - (dx * dx + dy * dy) / MAX_DIST_SQ;
 
                 variance * center_bias
             })

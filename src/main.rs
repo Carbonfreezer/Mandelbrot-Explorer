@@ -31,7 +31,7 @@ const PICTURE_WIDTH: i32 = 1920;
 const PICTURE_HEIGHT: i32 = 1080;
 
 /// The scaling factor we have for in scaling per second.
-const START_RADIUS: f64 = 0.05;
+const START_RADIUS: f64 = 0.025;
 
 /// The smooth time we use for the autofocus.
 const FOCUS_SMOOTH_TIME: f64 = 1.25;
@@ -77,6 +77,16 @@ impl PrecisionChangingData {
         }
     }
 
+    /// Improves the starting position by moving onto a better focus point.
+    pub fn iter_start(&mut self) {
+        for _ in 0..10 {
+            let num_array = get_iteration_field(&self.center, &self.radius);
+            let focus = FocusPoint::new(&num_array);
+            self.center =
+                focus.get_absolute_focus_in_complex_number_pane(&self.center, &self.radius);
+        }
+    }
+
     /// Checks if we need to upgrade the precision and eventually does so, all relevant data will get upgraded to the new precision.
     ///
     /// #unsafe
@@ -104,8 +114,9 @@ impl PrecisionChangingData {
 }
 
 fn main() {
-    let start_radius_scaling_per_step = 0.5_f64.powf(DELTA_TIME);
+    let start_radius_scaling_per_step = 0.25_f64.powf(DELTA_TIME);
     let mut data = PrecisionChangingData::new();
+    data.iter_start();
     let mut frame_counter: u32 = 0;
     let image_saver = ImageSaver::default();
 

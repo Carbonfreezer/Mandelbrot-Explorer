@@ -4,7 +4,7 @@ use crate::math::MAX_ITER;
 use std::sync::LazyLock;
 
 /// The amount of complete cycles we do on the hue for the complete stretch.
-const HUE_CYCLES: f32 = 10.0;
+const HUE_CYCLES: f32 = 20.0;
 /// The light intensity we use on the color.
 const COLOR_VALUE: f32 = 0.8;
 /// The color saturation we use.

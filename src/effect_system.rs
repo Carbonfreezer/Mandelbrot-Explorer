@@ -43,16 +43,18 @@ pub fn create_low_pass_filtered_density_field(iteration_field: &[f32]) -> Vec<f3
                         let source_x = x_pos + dx;
                         let source_y = y_pos + dy;
 
-                        if (source_x < 0) || (source_y < 0) || (source_x >= WINDOW_WIDTH) || (source_y >= WINDOW_HEIGHT) {
+                        if (source_x < 0)
+                            || (source_y < 0)
+                            || (source_x >= WINDOW_WIDTH)
+                            || (source_y >= WINDOW_HEIGHT)
+                        {
                             0.0
-                        }
-                        else {
+                        } else {
                             let source_index = (source_x + source_y * WINDOW_WIDTH) as usize;
-                            let kernel_index =
-                                (dx + CONV_OFFSET) as usize + (dy + CONV_OFFSET) as usize * CONV_SIZE;
-                            iteration_field[source_index]  * LOW_PASS_KERNEL[kernel_index]
+                            let kernel_index = (dx + CONV_OFFSET) as usize
+                                + (dy + CONV_OFFSET) as usize * CONV_SIZE;
+                            iteration_field[source_index] * LOW_PASS_KERNEL[kernel_index]
                         }
-
                     })
                 })
                 .sum::<f32>()

@@ -1,8 +1,8 @@
 //! Contains the real mandelbrot caclulations.
 
-use std::f64::consts::LN_2;
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
 use rayon::prelude::*;
+use std::f64::consts::LN_2;
 use std::ops::{AddAssign, Sub};
 
 /// The maximum amount of iterations we want to do for a complex number in Mandelbrot to check for divergence.
@@ -110,7 +110,7 @@ pub fn get_iteration_field(center: ComplexNumber, extension: f64) -> Vec<f32> {
 
             let (iter, z_sq) = scan.get_iteration_till_termination();
             if iter == MAX_ITER {
-                MAX_ITER as f32  // in der Menge
+                MAX_ITER as f32 // in der Menge
             } else {
                 // smooth iteration count
                 iter as f32 - (z_sq.sqrt().ln().ln() / LN_2) as f32

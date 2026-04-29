@@ -11,7 +11,7 @@ const CONV_OFFSET: i32 = 10;
 const CONV_SIZE: usize = 2 * CONV_OFFSET as usize + 1;
 
 /// The sigma for the loe pass filter.
-const SIGMA: f32 = 2.0;
+const SIGMA: f32 = 3.0;
 
 /// The ambient lighting we use for shading.
 const AMBIENT: f32 = 0.1;

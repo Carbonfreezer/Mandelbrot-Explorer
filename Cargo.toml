@@ -7,7 +7,7 @@ edition = "2024"
 macroquad = { version = "0.4.14" }
 rayon = "1.11.0"
 itertools = "0.14.0"
-
+colorgrad = "0.6.0"
 
 # Profile for profiling
 [profile.profiling]

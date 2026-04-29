@@ -1,6 +1,7 @@
 #![windows_subsystem = "windows"]
 
 mod color_generation;
+mod effect_system;
 mod focus_system;
 mod math;
 
@@ -55,7 +56,8 @@ fn window_conf() -> Conf {
         window_title: "Mandelbrot".to_owned(),
         window_width: WINDOW_WIDTH,
         window_height: WINDOW_HEIGHT,
-        fullscreen: true,
+        // fullscreen: true,
+        fullscreen: false,
         ..Default::default()
     }
 }
@@ -100,8 +102,7 @@ async fn main() {
             ZoomState::ZoomingInAndFollowing => {
                 // compute the target center we want to approach
                 let focus = FocusPointWithScore::new(&num_array);
-                let target_center =
-                    focus.get_absolute_focus_in_complex_number_pane(center, radius);
+                let target_center = focus.get_absolute_focus_in_complex_number_pane(center, radius);
 
                 // smoothly move center towards target_center using the existing ComplexNumber smoothing
                 center.smooth_damp_to(target_center, &mut velocity, FOCUS_SMOOTH_TIME, delta_time);

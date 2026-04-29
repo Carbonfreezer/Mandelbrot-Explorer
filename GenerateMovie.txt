@@ -1,4 +1,17 @@
 ffmpeg -framerate 50 -i Image_%06d.png -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p fractal.mp4
+
+
+Codierung bis zu frame x:
+ffmpeg -framerate 50 -i Image_%06d.png -frames:v 12345 -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p fractal.mp4
+
+ffmpeg -framerate 50 -i Image_%06d.png -t 378 -vf "fade=t=out:st=373:d=5" -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p fractal.mp4
+
+ffmpeg -framerate 50 -i Image_%06d.png -filter_complex "[0:v]trim=start_frame=0:end_frame=18900,setpts=PTS-STARTPTS[anim]; [0:v]trim=start_frame=0:end_frame=1,loop=loop=100:size=1:start=0,setpts=PTS-STARTPTS[start_still]; [0:v]trim=start_frame=18899:end_frame=18900,loop=loop=100:size=1:start=0,setpts=PTS-STARTPTS[end_still]; [end_still][start_still]xfade=transition=circleopen:duration=2:offset=0[transition]; [anim][transition]concat=n=2:v=1:a=0" -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p fractal.mp4
+
+
+
+
+
 ffmpeg -framerate 50 -i Image_%06d.png -c:v libx264 fractal.mp4
 
 nohup long-running-command &

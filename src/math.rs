@@ -1,5 +1,6 @@
 //! Contains the real mandelbrot caclulations.
 
+use std::f64::consts::LN_2;
 use crate::{WINDOW_HEIGHT, WINDOW_WIDTH};
 use rayon::prelude::*;
 use std::ops::{AddAssign, Sub};
@@ -33,13 +34,14 @@ impl ComplexNumber {
     }
 
     /// Gets the amount of iterations we need till divergence.
-    pub fn get_iteration_till_termination(&self) -> u16 {
+    pub fn get_iteration_till_termination(&self) -> (u16, f64) {
         let mut iter = 0;
         let mut scan = ComplexNumber::default();
         while iter < MAX_ITER && scan.next_step(*self) {
             iter += 1;
         }
-        iter
+        let z_sq_mag = scan.real * scan.real + scan.imag * scan.imag;
+        (iter, z_sq_mag)
     }
 
     /// Does a smooth damp with critical damped spring to a target complex number.
@@ -92,7 +94,7 @@ impl Sub for ComplexNumber {
 
 /// Generates an iteration field for the given complex number as a center and an extension given as a radius.
 /// The window half height corresponds to the radius.
-pub fn get_iteration_field(center: ComplexNumber, extension: f64) -> Vec<u16> {
+pub fn get_iteration_field(center: ComplexNumber, extension: f64) -> Vec<f32> {
     let window_height = WINDOW_HEIGHT as f64;
     let step_increment = extension / (window_height * 0.5);
 
@@ -101,12 +103,20 @@ pub fn get_iteration_field(center: ComplexNumber, extension: f64) -> Vec<u16> {
         .map(|x| {
             let y_pos = x / WINDOW_WIDTH - WINDOW_HEIGHT / 2;
             let x_pos = x % WINDOW_WIDTH - WINDOW_WIDTH / 2;
+
             let mut scan =
                 ComplexNumber::new(x_pos as f64 * step_increment, y_pos as f64 * step_increment);
             scan += center;
-            scan.get_iteration_till_termination()
+
+            let (iter, z_sq) = scan.get_iteration_till_termination();
+            if iter == MAX_ITER {
+                MAX_ITER as f32  // in der Menge
+            } else {
+                // smooth iteration count
+                iter as f32 - (z_sq.sqrt().ln().ln() / LN_2) as f32
+            }
         })
-        .collect::<Vec<u16>>()
+        .collect()
 }
 
 /// Generic smooth damping function that works on a critically damped spring.

@@ -25,7 +25,7 @@ pub struct FocusPointWithScore {
 
 impl FocusPointWithScore {
     /// Gets a focus point (including score) from the iteration field handed over.
-    pub fn new(in_field: &[u16]) -> FocusPointWithScore {
+    pub fn new(in_field: &[f32]) -> FocusPointWithScore {
         let (best_index, score) = (0..WINDOW_WIDTH * WINDOW_HEIGHT)
             .into_par_iter()
             .map(|idx| {
@@ -45,7 +45,7 @@ impl FocusPointWithScore {
                 let (sum, sq_sum) = (-WINDOW_STEP..=WINDOW_STEP)
                     .cartesian_product(-WINDOW_STEP..=WINDOW_STEP)
                     .map(|(dx, dy)| {
-                        in_field[(x + dx) as usize + ((y + dy) * WINDOW_WIDTH) as usize] as f32
+                        in_field[(x + dx) as usize + ((y + dy) * WINDOW_WIDTH) as usize]
                     })
                     .fold((0.0, 0.0), |(s, sq), v| (s + v, sq + v * v));
 
@@ -106,7 +106,7 @@ pub struct StartPointForZoom {
     /// The amount of improvements attempts we still make.
     remaining_iteration: u8,
     /// The buffer to split computations over two frames.
-    precomputed_field: Option<(Vec<u16>, ComplexNumber)>,
+    precomputed_field: Option<(Vec<f32>, ComplexNumber)>,
 }
 
 impl StartPointForZoom {

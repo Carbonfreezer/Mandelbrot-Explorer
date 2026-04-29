@@ -18,12 +18,12 @@ const COLOR_SATURATION: f32 = 0.8;
 
 
 /// Takes a field with iterations and converts it into a color array.
-pub fn generate_colors(in_field: &[u16]) -> Vec<Color> {
+pub fn generate_colors(in_field: &[f32]) -> Vec<Color> {
     let low_pass = create_low_pass_filtered_density_field(in_field);
     let shading = create_shading_field(&low_pass);
 
 
-    low_pass.par_iter().zip(shading.par_iter()).map(|(l, r)|
+    in_field.par_iter().zip(shading.par_iter()).map(|(l, r)|
         {
             let rel_val = (l *HUE_CYCLES / MAX_ITER as f32).fract();
             hsl_to_rgb(rel_val, COLOR_SATURATION, r * COLOR_VALUE * f32::exp(- 1.5 *  (MAX_ITER as f32 - l) / MAX_ITER as f32) )

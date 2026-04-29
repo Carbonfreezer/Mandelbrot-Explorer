@@ -56,8 +56,8 @@ fn window_conf() -> Conf {
         window_title: "Mandelbrot".to_owned(),
         window_width: WINDOW_WIDTH,
         window_height: WINDOW_HEIGHT,
-        // fullscreen: true,
-        fullscreen: false,
+        fullscreen: true,
+        // fullscreen: false,
         ..Default::default()
     }
 }

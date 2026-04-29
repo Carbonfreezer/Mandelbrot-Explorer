@@ -7,16 +7,16 @@ use std::f32::consts::PI;
 use std::sync::LazyLock;
 
 /// The half size we have for the convolution kernel..
-const CONV_OFFSET: i32 = 10;
+const CONV_OFFSET: i32 = 5;
 const CONV_SIZE: usize = 2 * CONV_OFFSET as usize + 1;
 
 /// The sigma for the loe pass filter.
-const SIGMA: f32 = 3.0;
+const SIGMA: f32 = 1.0;
 
 /// The ambient lighting we use for shading.
 const AMBIENT: f32 = 0.1;
 
-const STEEP_FACTOR: f32 = 2.0;
+const STEEP_FACTOR: f32 = 3.0;
 
 static LOW_PASS_KERNEL: LazyLock<Vec<f32>> = LazyLock::new(generate_convolution_kernel);
 
@@ -31,7 +31,7 @@ fn generate_convolution_kernel() -> Vec<f32> {
         .collect()
 }
 
-pub fn create_low_pass_filtered_density_field(iteration_field: &[u16]) -> Vec<f32> {
+pub fn create_low_pass_filtered_density_field(iteration_field: &[f32]) -> Vec<f32> {
     (0..WINDOW_WIDTH * WINDOW_HEIGHT)
         .into_par_iter()
         .map(|i| {
@@ -50,7 +50,7 @@ pub fn create_low_pass_filtered_density_field(iteration_field: &[u16]) -> Vec<f3
                             let source_index = (source_x + source_y * WINDOW_WIDTH) as usize;
                             let kernel_index =
                                 (dx + CONV_OFFSET) as usize + (dy + CONV_OFFSET) as usize * CONV_SIZE;
-                            iteration_field[source_index] as f32 * LOW_PASS_KERNEL[kernel_index]
+                            iteration_field[source_index]  * LOW_PASS_KERNEL[kernel_index]
                         }
 
                     })

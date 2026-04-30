@@ -9,8 +9,7 @@ use rayon::iter::ParallelIterator;
 use rayon::prelude::IntoParallelRefIterator;
 
 /// Takes a field with iterations and converts it into a color array.
-/// It colorizes the iteration field with a magma color scale. It diminishes the color with
-/// increasing distance and takes the shading effects into account.
+/// It colorizes the iteration field with a magma color scale. It  takes the shading effects into account.
 pub fn generate_colors(in_field: &[f32]) -> Vec<Color> {
     let low_pass = create_low_pass_filtered_density_field(in_field);
     let shading = create_shading_field(&low_pass);
@@ -18,10 +17,9 @@ pub fn generate_colors(in_field: &[f32]) -> Vec<Color> {
     in_field
         .par_iter()
         .zip(shading.par_iter())
-        .map(|(l, r)| {
-            let t = (l / MAX_ITER as f32).sqrt() as f64;
+        .map(|(iterations, brightness)| {
+            let t = (iterations / MAX_ITER as f32).sqrt() as f64;
             let c = MAGMA.eval_continuous(t);
-            let brightness = r * f32::exp(-0.5 * (MAX_ITER as f32 - l) / MAX_ITER as f32);
             Color::new(
                 brightness * c.r as f32 / 255.0,
                 brightness * c.g as f32 / 255.0,

@@ -8,6 +8,7 @@ use std::sync::LazyLock;
 
 /// The half size we have for the convolution kernel..
 const CONV_OFFSET: i32 = 5;
+/// The total size of the convolution kernel.
 const CONV_SIZE: usize = 2 * CONV_OFFSET as usize + 1;
 
 /// The sigma for the loe pass filter.
@@ -16,10 +17,15 @@ const SIGMA: f32 = 1.0;
 /// The ambient lighting we use for shading.
 const AMBIENT: f32 = 0.1;
 
+/// This factor indicates how emphasized the shadow effect on the gradient should be. 
 const STEEP_FACTOR: f32 = 3.0;
 
+
+/// A low pass filter convolution kernel
 static LOW_PASS_KERNEL: LazyLock<Vec<f32>> = LazyLock::new(generate_convolution_kernel);
 
+
+/// Generates the low pass filter convolution kernel.
 fn generate_convolution_kernel() -> Vec<f32> {
     (-CONV_OFFSET..=CONV_OFFSET)
         .flat_map(|y| {
@@ -31,6 +37,9 @@ fn generate_convolution_kernel() -> Vec<f32> {
         .collect()
 }
 
+
+/// Given an iteration field a low pass filtered version of the iteration field is generated.
+/// This is needed for the shading calculation.
 pub fn create_low_pass_filtered_density_field(iteration_field: &[f32]) -> Vec<f32> {
     (0..WINDOW_WIDTH * WINDOW_HEIGHT)
         .into_par_iter()
@@ -62,6 +71,9 @@ pub fn create_low_pass_filtered_density_field(iteration_field: &[f32]) -> Vec<f3
         .collect()
 }
 
+
+/// Computes a gradient of the iteration field and does a pseudo illumination from a light source,
+/// that shines directly from the camera. 
 pub fn create_shading_field(in_field: &[f32]) -> Vec<f32> {
     (0..WINDOW_WIDTH * WINDOW_HEIGHT)
         .into_par_iter()

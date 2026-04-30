@@ -33,7 +33,8 @@ impl ComplexNumber {
         sq_real + sq_imag < 4.0
     }
 
-    /// Gets the amount of iterations we need till divergence.
+    /// Gets the amount of iterations we need till divergence and the square magnitude of the
+    /// terminal value.
     pub fn get_iteration_till_termination(&self) -> (u16, f64) {
         let mut iter = 0;
         let mut scan = ComplexNumber::default();
@@ -93,7 +94,8 @@ impl Sub for ComplexNumber {
 }
 
 /// Generates an iteration field for the given complex number as a center and an extension given as a radius.
-/// The window half height corresponds to the radius.
+/// The window half height corresponds to the radius. This method does a smooth interpolation between iteration
+/// steps by taking the terminal squared magnitude into account.
 pub fn get_iteration_field(center: ComplexNumber, extension: f64) -> Vec<f32> {
     let window_height = WINDOW_HEIGHT as f64;
     let step_increment = extension / (window_height * 0.5);
